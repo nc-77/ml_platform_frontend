@@ -9,7 +9,7 @@ const Port = {
       },
       attrs: {
         circle: {
-          r: 6,
+          r: 4,
           magnet: true,
           stroke: "#31d0c6",
           strokeWidth: 2,
@@ -17,6 +17,9 @@ const Port = {
           style: {
             visibility: "hidden",
           },
+        },
+        text: {
+          fontSize: 12,
         },
       },
     },
@@ -28,7 +31,7 @@ const Port = {
       },
       attrs: {
         circle: {
-          r: 6,
+          r: 4,
           magnet: true,
           stroke: "#31d0c6",
           strokeWidth: 2,
@@ -36,6 +39,9 @@ const Port = {
           style: {
             visibility: "hidden",
           },
+        },
+        text: {
+          fontSize: 12,
         },
       },
     },
@@ -45,7 +51,7 @@ const Port = {
       group: "in",
       attrs: {
         text: {
-          text: "in1",
+          text: "输入",
           style: {
             visibility: "hidden",
           },
@@ -56,7 +62,7 @@ const Port = {
       group: "out",
       attrs: {
         text: {
-          text: "out1",
+          text: "输出",
           style: {
             visibility: "hidden",
           },
@@ -77,7 +83,6 @@ const ReadCSV = {
     label: "读CSV文件",
     name: "读CSV文件",
     status: "",
-    statusImg: "",
     logo: "../src/assets/logo.png",
   },
   attrs: {
@@ -97,7 +102,6 @@ const ReadExcel = {
     label: "读EXCEL文件",
     name: "读EXCEL文件",
     status: "",
-    statusImg: "",
     logo: "../src/assets/logo.png",
   },
 };
@@ -112,7 +116,6 @@ const SpiltFile = {
     label: "拆分",
     name: "拆分",
     status: "",
-    statusImg: "",
     logo: "../src/assets/logo.png",
   },
 };
@@ -127,7 +130,6 @@ const MergeFile = {
     label: "合并",
     name: "合并",
     status: "",
-    statusImg: "",
     logo: "../src/assets/logo.png",
   },
 };

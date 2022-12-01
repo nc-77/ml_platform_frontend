@@ -17,7 +17,6 @@ export default {
       label: "",
       name: "",
       status: "",
-      statusImg: "",
       logo: "",
     };
   },
@@ -34,10 +33,8 @@ export default {
     let node = this.getNode();
     // 初始化数据绑定
     this.mapper(node.data, this.$data);
-    console.info(node);
     // 节点数据变化监听，从而绑定数据
     node.on("change:data", ({ current }) => this.mapper(current, this.$data));
-    
   },
 
   computed: {
@@ -45,6 +42,12 @@ export default {
       let clazz = {};
       if (this.status) clazz[this.status] = true;
       return clazz;
+    },
+    statusImg: function () {
+      if (!this.status) {
+        return "";
+      }
+      return "./src/assets/" + this.status + ".png";
     },
   },
 };
@@ -113,4 +116,18 @@ export default {
   stroke-width: 1.5px !important;
 }
 
+@keyframes running-line {
+  to {
+    stroke-dashoffset: -1000;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
 </style>

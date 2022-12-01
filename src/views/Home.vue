@@ -5,6 +5,9 @@
         <a-button>
           <template #icon><file-done-outlined /></template>保存
         </a-button>
+        <a-button>
+          <template #icon><caret-right-outlined /></template>运行
+        </a-button>
         <a-button @click="this.graph.undo()">
           <template #icon><undo-outlined /></template>撤销
         </a-button>
@@ -43,7 +46,7 @@
 </template>
 
 <script>
-import { Graph, Addon, Shape, Cell } from "@antv/x6";
+import { Graph, Addon, Shape, Cell, Path } from "@antv/x6";
 import {
   FileDoneOutlined,
   ZoomInOutlined,
@@ -51,6 +54,7 @@ import {
   UndoOutlined,
   RedoOutlined,
   ReloadOutlined,
+  CaretRightOutlined,
 } from "@ant-design/icons-vue";
 import NodeTemplate from "../components/NodeTemplate.vue";
 import ParamForm from "../components/ParamForm.vue";
@@ -77,6 +81,7 @@ export default {
     UndoOutlined,
     RedoOutlined,
     ReloadOutlined,
+    CaretRightOutlined,
     NodeTemplate,
     ParamForm,
   },
@@ -105,6 +110,13 @@ export default {
         history: {
           enabled: true,
           ignoreChange: true,
+          // beforeAddCommand(event, args) {
+          //   console.log("before add", event, args);
+          //   return true;
+          // },
+          // afterAddCommand(event, args, cmd) {
+          //   console.log("after add", event, args, cmd);
+          // },
         },
         container: graphContainer,
         width,
@@ -121,6 +133,20 @@ export default {
           allowLoop: false,
           allowNode: false,
           highlight: true,
+          connector: "algo-connector",
+          connectionPoint: "anchor",
+          anchor: "center",
+          createEdge() {
+            return graph.createEdge({
+              shape: "dag-edge",
+              attrs: {
+                line: {
+                  strokeDasharray: "5 5",
+                },
+              },
+              zIndex: -1,
+            });
+          },
         },
         selecting: {
           enabled: true,
@@ -132,6 +158,9 @@ export default {
           modifiers: ["ctrl", "meta"],
         },
       });
+      // graph.history.on("change", (args) => {
+      //   console.log("change", args); // code here
+      // });
       // 单击节点事件
       graph.on("node:click", ({ e, x, y, node, view }) => {
         this.currentNode = node;
@@ -158,9 +187,34 @@ export default {
           node.setPortProp(port.id, "attrs/text/style/visibility", "hidden");
         });
       });
-
+      // 边成功创建事件
+      graph.on("edge:connected", ({ edge }) => {
+        edge.attr({
+          line: {
+            strokeDasharray: "",
+          },
+        });
+      });
+      // 运行事件
+      graph.on("`node:change`:data", ({ node }) => {
+        const edges = graph.getIncomingEdges(node);
+        const { status } = node.getData();
+        edges?.forEach((edge) => {
+          if (status === "running") {
+            edge.attr("line/strokeDasharray", 5);
+            edge.attr(
+              "line/style/animation",
+              "running-line 30s infinite linear"
+            );
+          } else {
+            edge.attr("line/strokeDasharray", "");
+            edge.attr("line/style/animation", "");
+          }
+        });
+      });
       this.graph = graph;
     },
+
     // 键盘快捷键
     initKeyboardFUN() {
       this.graph.bindKey("ctrl+c", () => {
@@ -220,6 +274,13 @@ export default {
         stencilGraphHeight:
           document.getElementsByClassName("container") -
           document.getElementsByClassName("nav"),
+        getDropNode(node) {
+          // 返回一个新的节点作为实际放置到画布上的节点
+          const { width, height } = node.size();
+          let newNode = node.clone();
+          newNode.size(175, height);
+          return newNode;
+        },
         groups: [
           {
             name: "group1",
@@ -257,15 +318,55 @@ export default {
       document.getElementById("stencil").appendChild(stencil.container);
 
       // 注册自定义节点
-      Graph.registerNode("img-node", {
-        inherit: "vue-shape",
-        component: {
-          template: `<NodeTemplate/>`,
-          components: {
-            NodeTemplate,
+      Graph.registerNode(
+        "img-node",
+        {
+          inherit: "vue-shape",
+          component: {
+            template: `<NodeTemplate/>`,
+            components: {
+              NodeTemplate,
+            },
           },
         },
-      });
+        true
+      );
+      // 注册自定义边
+      Graph.registerEdge(
+        "dag-edge",
+        {
+          inherit: "edge",
+          attrs: {
+            line: {
+              stroke: "#C2C8D5",
+              strokeWidth: 1,
+              targetMarker: null,
+            },
+          },
+        },
+        true
+      );
+      //注册自定义边控制器
+      Graph.registerConnector(
+        "algo-connector",
+        (s, e) => {
+          const offset = 4;
+          const deltaY = Math.abs(e.y - s.y);
+          const control = Math.floor((deltaY / 3) * 2);
+
+          const v1 = { x: s.x, y: s.y + offset + control };
+          const v2 = { x: e.x, y: e.y - offset - control };
+
+          return Path.normalize(
+            `M ${s.x} ${s.y}
+       L ${s.x} ${s.y + offset}
+       C ${v1.x} ${v1.y} ${v2.x} ${v2.y} ${e.x} ${e.y - offset}
+       L ${e.x} ${e.y}
+      `
+          );
+        },
+        true
+      );
       // 创建数据源组组件实例
       const readCsv = this.graph.createNode(MetaData.ReadCSV);
       const readExcel = this.graph.createNode(MetaData.ReadExcel);
@@ -277,8 +378,7 @@ export default {
       // 挂载节点实例至组件库
       stencil.load([readCsv, readExcel], "group1");
       stencil.load([splitFile, mergeFile], "group2");
-      this.graph.addNode(readCsv.clone());
-    
+
       this.stencil = stencil;
     },
   },
