@@ -5,15 +5,15 @@
         <a-button>
           <template #icon><file-done-outlined /></template>保存
         </a-button>
-        <a-button>
+        <a-button @click="runAll">
           <template #icon><caret-right-outlined /></template>运行
         </a-button>
         <a-button @click="this.graph.undo()">
           <template #icon><undo-outlined /></template>撤销
         </a-button>
-        <a-button @click="this.graph.redo()">
+        <!-- <a-button @click="this.graph.redo()">
           <template #icon><redo-outlined /></template>重做
-        </a-button>
+        </a-button> -->
         <a-button @click="this.graph.zoom(0.2)">
           <template #icon><zoom-in-outlined /></template>放大
         </a-button>
@@ -60,6 +60,8 @@ import NodeTemplate from "../components/NodeTemplate.vue";
 import ParamForm from "../components/ParamForm.vue";
 import * as MetaData from "./MetaData";
 import "@antv/x6-vue-shape";
+import ReadCsv from "../components/ReadCsv";
+import SplitFile from "../components/SplitFile";
 
 const { Stencil } = Addon;
 const { Edge } = Shape;
@@ -91,6 +93,9 @@ export default {
     this.initKeyboardFUN();
   },
   methods: {
+    runAll() {
+      console.log("run all");
+    },
     changeNodeName(newName) {
       this.currentNode?.setData({
         name: newName,
@@ -110,13 +115,6 @@ export default {
         history: {
           enabled: true,
           ignoreChange: true,
-          // beforeAddCommand(event, args) {
-          //   console.log("before add", event, args);
-          //   return true;
-          // },
-          // afterAddCommand(event, args, cmd) {
-          //   console.log("after add", event, args, cmd);
-          // },
         },
         container: graphContainer,
         width,
@@ -158,9 +156,6 @@ export default {
           modifiers: ["ctrl", "meta"],
         },
       });
-      // graph.history.on("change", (args) => {
-      //   console.log("change", args); // code here
-      // });
       // 单击节点事件
       graph.on("node:click", ({ e, x, y, node, view }) => {
         this.currentNode = node;
@@ -368,11 +363,11 @@ export default {
         true
       );
       // 创建数据源组组件实例
-      const readCsv = this.graph.createNode(MetaData.ReadCSV);
+      const readCsv = this.graph.createNode(ReadCsv.metaData);
       const readExcel = this.graph.createNode(MetaData.ReadExcel);
 
       // 创建数据预处理组件实例
-      const splitFile = this.graph.createNode(MetaData.SpiltFile);
+      const splitFile = this.graph.createNode(SplitFile.metaData);
       const mergeFile = this.graph.createNode(MetaData.MergeFile);
 
       // 挂载节点实例至组件库

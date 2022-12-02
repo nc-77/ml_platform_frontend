@@ -71,33 +71,44 @@ const Port = {
     },
   ],
 };
+// ReadCsv 组件
+let ReadCsv = {
+  metaData: {
+    shape: "img-node",
+    width: 140,
+    height: 36,
+    x: 290,
+    y: 110,
+    ports: Port,
+    data: {
+      label: "读CSV文件",
+      name: "读CSV文件",
+      status: "",
+      logo: "../src/assets/logo.png",
+    },
+    attrs: {
+      body: {
+        height: 36,
+      },
+    },
+  },
+  run: async (node) => {
+    const data = node.getData();
+    // 检查父节点是否完成
 
-const ReadExcel = {
-  shape: "img-node",
-  width: 140,
-  height: 36,
-  x: 290,
-  y: 110,
-  ports: Port,
-  data: {
-    label: "读EXCEL文件",
-    name: "读EXCEL文件",
-    status: "",
-    logo: "../src/assets/logo.png",
+    console.log("readcsv is running");
+    node.setData({
+      status: "running",
+    });
+    // do job
+    let promise = new Promise((resolve, reject) => {
+      setTimeout(() => resolve("success"), 1000);
+    });
+    let result = await promise;
+    node.setData({
+      status: result,
+    });
   },
 };
-const MergeFile = {
-  shape: "img-node",
-  width: 140,
-  height: 36,
-  x: 290,
-  y: 110,
-  ports: Port,
-  data: {
-    label: "合并",
-    name: "合并",
-    status: "",
-    logo: "../src/assets/logo.png",
-  },
-};
-export { ReadExcel, MergeFile, Port };
+
+export default ReadCsv;

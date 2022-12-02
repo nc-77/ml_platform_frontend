@@ -1,14 +1,26 @@
 <template>
-  <div :class="nodeClass" class="node">
-    <img :src="logo" />
-    <span class="label">{{ name }}</span>
-    <span class="status">
-      <img :src="statusImg" v-if="statusImg" />
-    </span>
-  </div>
+  <a-dropdown :trigger="['contextmenu']">
+    <div :class="nodeClass" class="node">
+      <img :src="logo" />
+      <span class="label">{{ name }}</span>
+      <span class="status">
+        <img :src="statusImg" v-if="statusImg" />
+      </span>
+    </div>
+    <template #overlay>
+      <a-menu>
+        <a-menu-item class="menu-item" key="1" @click="run"
+          >运行该节点</a-menu-item
+        >
+      </a-menu>
+    </template>
+  </a-dropdown>
 </template>
 
 <script>
+import SplitFile from "./SplitFile.js";
+import ReadCsv from "./ReadCsv.js";
+
 export default {
   name: "NodeTemplate",
   inject: ["getGraph", "getNode"],
@@ -18,6 +30,7 @@ export default {
       name: "",
       status: "",
       logo: "",
+      nodeRun: {},
     };
   },
 
@@ -27,6 +40,18 @@ export default {
         target[key] = source?.[key] ?? target[key];
       }
     },
+    initNodeRun() {
+      this.nodeRun = {
+        读CSV文件: ReadCsv.run,
+        拆分: SplitFile.run,
+      };
+    },
+    run() {
+      const node = this.getNode();
+      const label = node.data.label;
+      //console.log(node.data);
+      this.nodeRun[label](node);
+    },
   },
 
   mounted() {
@@ -35,6 +60,8 @@ export default {
     this.mapper(node.data, this.$data);
     // 节点数据变化监听，从而绑定数据
     node.on("change:data", ({ current }) => this.mapper(current, this.$data));
+    // 注册组件Run方法
+    this.initNodeRun();
   },
 
   computed: {
@@ -114,6 +141,16 @@ export default {
 .x6-edge-selected path:nth-child(2) {
   stroke: #1890ff;
   stroke-width: 1.5px !important;
+}
+
+.menu-item {
+  height: 32px;
+  height: var(--menu-line-height, 32px);
+  font-size: var(--menu-font-size, 12px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  word-wrap: normal;
 }
 
 @keyframes running-line {
