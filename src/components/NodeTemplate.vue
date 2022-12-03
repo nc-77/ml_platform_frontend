@@ -1,5 +1,5 @@
 <template>
-  <a-dropdown :trigger="['contextmenu']">
+  <a-dropdown :trigger="['contextmenu']" :disabled="!showContextMenu">
     <div :class="nodeClass" class="node">
       <img :src="logo" />
       <span class="label">{{ name }}</span>
@@ -18,6 +18,7 @@
 </template>
 
 <script>
+import { notification } from "ant-design-vue";
 import SplitFile from "./SplitFile.js";
 import ReadCsv from "./ReadCsv.js";
 
@@ -31,6 +32,7 @@ export default {
       status: "",
       logo: "",
       nodeRun: {},
+      showContextMenu: false,
     };
   },
 
@@ -40,17 +42,25 @@ export default {
         target[key] = source?.[key] ?? target[key];
       }
     },
+    openNotificationWithIcon(result) {
+      notification[result.type]({
+        message: result.message,
+        description: result.description,
+      });
+    },
     initNodeRun() {
       this.nodeRun = {
         读CSV文件: ReadCsv.run,
         拆分: SplitFile.run,
       };
     },
-    run() {
+    async run() {
       const node = this.getNode();
+      const graph = this.getGraph();
       const label = node.data.label;
-      //console.log(node.data);
-      this.nodeRun[label](node);
+      this.nodeRun[label](node, graph).then((result) => {
+        this.openNotificationWithIcon(result);
+      });
     },
   },
 
@@ -152,7 +162,6 @@ export default {
   white-space: nowrap;
   word-wrap: normal;
 }
-
 @keyframes running-line {
   to {
     stroke-dashoffset: -1000;

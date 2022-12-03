@@ -1,3 +1,5 @@
+import { Graph } from "@antv/x6";
+
 // 定义组件元数据
 const Port = {
   groups: {
@@ -92,9 +94,34 @@ let ReadCsv = {
       },
     },
   },
-  run: async (node) => {
-    const data = node.getData();
+  run: async (node, graph) => {
+    let result = {
+      type: "",
+      message: "",
+      description: "",
+    };
     // 检查父节点是否完成
+    let edges = graph.getIncomingEdges(node);
+    let incomingNodes = new Array();
+    edges?.forEach((edge) => {
+      incomingNodes.push(edge.getSourceCell());
+    });
+    let checkIncoming = true;
+    incomingNodes?.forEach((node) => {
+      let check = false;
+      if (node.getData()?.status== "success") {
+        check = true;
+      }
+      checkIncoming = checkIncoming && check;
+    });
+    if (!checkIncoming) {
+      result = {
+        type: "error",
+        message: "节点运行失败！",
+        description: "原因：上游节点未完成",
+      };
+      return result;
+    }
 
     console.log("readcsv is running");
     node.setData({
@@ -104,10 +131,15 @@ let ReadCsv = {
     let promise = new Promise((resolve, reject) => {
       setTimeout(() => resolve("success"), 1000);
     });
-    let result = await promise;
+    let status = await promise;
     node.setData({
-      status: result,
+      status: status,
     });
+    result = {
+      type: "success",
+      message: "节点运行成功！",
+    };
+    return result;
   },
 };
 

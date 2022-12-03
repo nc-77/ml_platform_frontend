@@ -191,7 +191,7 @@ export default {
         });
       });
       // 运行事件
-      graph.on("`node:change`:data", ({ node }) => {
+      graph.on("node:change:data", ({ node }) => {
         const edges = graph.getIncomingEdges(node);
         const { status } = node.getData();
         edges?.forEach((edge) => {
@@ -273,6 +273,9 @@ export default {
           // 返回一个新的节点作为实际放置到画布上的节点
           const { width, height } = node.size();
           let newNode = node.clone();
+          newNode.setData({
+            showContextMenu: true,
+          });
           newNode.size(175, height);
           return newNode;
         },
