@@ -94,6 +94,7 @@ export default {
   },
   methods: {
     runAll() {
+      
       console.log("run all");
     },
     changeNodeName(newName) {

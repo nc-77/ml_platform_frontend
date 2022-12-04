@@ -1,5 +1,6 @@
+import * as nodeTemplate from "./NodeTemplate";
 // 定义组件元数据
-const Port = {
+const port = {
   groups: {
     // 输入链接桩群组定义
     in: {
@@ -7,21 +8,7 @@ const Port = {
       label: {
         position: "top", // 标签位置
       },
-      attrs: {
-        circle: {
-          r: 4,
-          magnet: true,
-          stroke: "#31d0c6",
-          strokeWidth: 2,
-          fill: "#fff",
-          style: {
-            visibility: "hidden",
-          },
-        },
-        text: {
-          fontSize: 12,
-        },
-      },
+      attrs: nodeTemplate.portAttrs,
     },
     // 输出链接桩群组定义
     out: {
@@ -29,21 +16,7 @@ const Port = {
       label: {
         position: "bottom", // 标签位置
       },
-      attrs: {
-        circle: {
-          r: 4,
-          magnet: true,
-          stroke: "#31d0c6",
-          strokeWidth: 2,
-          fill: "#fff",
-          style: {
-            visibility: "hidden",
-          },
-        },
-        text: {
-          fontSize: 12,
-        },
-      },
+      attrs: nodeTemplate.portAttrs,
     },
   },
   items: [
@@ -77,9 +50,7 @@ let SplitFile = {
     shape: "img-node",
     width: 140,
     height: 36,
-    x: 290,
-    y: 110,
-    ports: Port,
+    ports: port,
     data: {
       label: "拆分",
       name: "拆分",
@@ -87,11 +58,23 @@ let SplitFile = {
       logo: "../src/assets/logo.png",
     },
   },
-  run: async (node) => {
-    const data = node.getData();
-    // 检查父节点是否完成
+  run: async (node,graph) => {
+    let result = {
+      type: "",
+      message: "",
+      description: "",
+    };
+    // 检查上游节点是否完成
+    if (!nodeTemplate.checkIncomingNodes(node, graph)) {
+      result = {
+        type: "error",
+        message: "节点运行失败！",
+        description: "原因：上游节点未完成",
+      };
+      return result;
+    }
 
-    console.log("splitfile is running");
+    console.log("splitFile is running");
     node.setData({
       status: "running",
     });
@@ -99,10 +82,15 @@ let SplitFile = {
     let promise = new Promise((resolve, reject) => {
       setTimeout(() => resolve("success"), 1000);
     });
-    let result = await promise;
+    let status = await promise;
     node.setData({
-      status: result,
+      status: status,
     });
+    result = {
+      type: "success",
+      message: "节点运行成功！",
+    };
+    return result;
   },
 };
 
