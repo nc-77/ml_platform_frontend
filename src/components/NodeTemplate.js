@@ -32,4 +32,5 @@ const checkIncomingNodes = (node, graph) => {
   return checkIncoming;
 };
 
+
 export { checkIncomingNodes, portAttrs };

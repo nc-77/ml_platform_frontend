@@ -42,12 +42,14 @@ export default {
         target[key] = source?.[key] ?? target[key];
       }
     },
+    // 运行情况提示框
     openNotificationWithIcon(result) {
       notification[result.type]({
         message: result.message,
         description: result.description,
       });
     },
+    // 依赖注入
     initNodeRun() {
       this.nodeRun = {
         读CSV文件: ReadCsv.run,

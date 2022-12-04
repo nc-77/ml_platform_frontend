@@ -1,4 +1,5 @@
 import * as nodeTemplate from "./NodeTemplate";
+import * as ret from "./Result";
 // 定义组件元数据
 const port = {
   groups: {
@@ -60,17 +61,21 @@ let ReadCsv = {
   },
 
   run: async (node, graph) => {
+    node.setData({
+      status: "",
+    });
     let result = {
       type: "",
       message: "",
       description: "",
     };
+    let data = node.getData();
     // 检查上游节点是否完成
     if (!nodeTemplate.checkIncomingNodes(node, graph)) {
       result = {
         type: "error",
-        message: "节点运行失败！",
-        description: "原因：上游节点未完成",
+        message: ret.failedMessage(data.name),
+        description: ret.checkIncomingFailedDesc,
       };
       return result;
     }
@@ -89,7 +94,7 @@ let ReadCsv = {
     });
     result = {
       type: "success",
-      message: "节点运行成功！",
+      message: ret.successMessage(data.name),
     };
     return result;
   },

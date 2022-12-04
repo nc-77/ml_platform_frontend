@@ -56,12 +56,15 @@ import {
   ReloadOutlined,
   CaretRightOutlined,
 } from "@ant-design/icons-vue";
+import { notification } from "ant-design-vue";
 import NodeTemplate from "../components/NodeTemplate.vue";
 import ParamForm from "../components/ParamForm.vue";
 import * as MetaData from "./MetaData";
+import * as ret from "../components/Result";
 import "@antv/x6-vue-shape";
 import ReadCsv from "../components/ReadCsv";
 import SplitFile from "../components/SplitFile";
+import { async } from "@antv/x6/lib/registry/marker/async";
 
 const { Stencil } = Addon;
 const { Edge } = Shape;
@@ -74,6 +77,7 @@ export default {
       stencil: Stencil,
       currentNode: null,
       formState: {},
+      nodeRun: "",
     };
   },
   components: {
@@ -91,11 +95,84 @@ export default {
     this.initGraph();
     this.initStencil();
     this.initKeyboardFUN();
+    this.initNodeRun();
   },
   methods: {
-    runAll() {
-      
-      console.log("run all");
+    // 运行情况提示框
+    openNotificationWithIcon(result) {
+      notification[result.type]({
+        message: result.message,
+        description: result.description,
+      });
+    },
+    // 依赖注入
+    initNodeRun() {
+      this.nodeRun = {
+        读CSV文件: ReadCsv.run,
+        拆分: SplitFile.run,
+      };
+    },
+    topoSort(nodes) {
+      let sortedNodes = new Array();
+      let queue = new Array();
+      let incoming = new Map();
+      nodes?.forEach((node) => {
+        const edges = this.graph.getIncomingEdges(node);
+        if (!edges || edges.length == 0) {
+          queue.push(node);
+          incoming[node.id] = 0;
+        } else {
+          incoming[node.id] = edges.length;
+        }
+      });
+      while (queue.length > 0) {
+        let top = queue.pop();
+        sortedNodes.push(top);
+        let outEdges = this.graph.getOutgoingEdges(top);
+        outEdges?.forEach((edge) => {
+          let targetId = edge.getTargetCellId();
+          incoming[targetId]--;
+          if (incoming[targetId] == 0) {
+            queue.push(this.graph.getCellById(targetId));
+          }
+        });
+      }
+      return sortedNodes;
+    },
+    async runAll() {
+      //console.log("run all");
+      let nodes = this.graph.getNodes();
+      if (!nodes || nodes.length == 0) {
+        return;
+      }
+      let finalResult = {
+        type: "",
+        message: "",
+        description: "",
+      };
+      let ok = true;
+      const sortedNodes = this.topoSort(nodes);
+      console.log(sortedNodes);
+      for (let node of sortedNodes) {
+        const label = node.data.label;
+        await this.nodeRun[label](node, this.graph).then((result) => {
+          console.log(result);
+          if (result.type == "error") {
+            ok = false;
+            if (result.description != ret.checkIncomingFailedDesc) {
+              this.openNotificationWithIcon(result);
+            }
+          }
+        });
+      }
+
+      if (ok) {
+        finalResult = {
+          type: "success",
+          message: "一键运行成功！",
+        };
+        this.openNotificationWithIcon(finalResult);
+      }
     },
     changeNodeName(newName) {
       this.currentNode?.setData({
