@@ -64,7 +64,6 @@ import * as ret from "../components/Result";
 import "@antv/x6-vue-shape";
 import ReadCsv from "../components/ReadCsv";
 import SplitFile from "../components/SplitFile";
-import { async } from "@antv/x6/lib/registry/marker/async";
 
 const { Stencil } = Addon;
 const { Edge } = Shape;
