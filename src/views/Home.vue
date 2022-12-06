@@ -47,6 +47,13 @@
 
 <script>
 import { Graph, Addon, Shape, Cell, Path } from "@antv/x6";
+import "@antv/x6-vue-shape";
+import { notification } from "ant-design-vue";
+import NodeTemplate from "../components/NodeTemplate.vue";
+import ParamForm from "../components/ParamForm.vue";
+import * as MetaData from "./MetaData";
+import ReadCsv from "../components/ReadCsv";
+import SplitFile from "../components/SplitFile";
 import {
   FileDoneOutlined,
   ZoomInOutlined,
@@ -56,14 +63,6 @@ import {
   ReloadOutlined,
   CaretRightOutlined,
 } from "@ant-design/icons-vue";
-import { notification } from "ant-design-vue";
-import NodeTemplate from "../components/NodeTemplate.vue";
-import ParamForm from "../components/ParamForm.vue";
-import * as MetaData from "./MetaData";
-import * as ret from "../components/Result";
-import "@antv/x6-vue-shape";
-import ReadCsv from "../components/ReadCsv";
-import SplitFile from "../components/SplitFile";
 
 const { Stencil } = Addon;
 const { Edge } = Shape;

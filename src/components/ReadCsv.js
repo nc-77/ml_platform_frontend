@@ -1,5 +1,4 @@
-import * as nodeTemplate from "./NodeTemplate";
-import * as ret from "./Result";
+import * as common from "./common";
 // 定义组件元数据
 const port = {
   groups: {
@@ -9,7 +8,7 @@ const port = {
       label: {
         position: "top", // 标签位置
       },
-      attrs: nodeTemplate.portAttrs,
+      attrs: common.portAttrs,
     },
     // 输出链接桩群组定义
     out: {
@@ -17,7 +16,7 @@ const port = {
       label: {
         position: "bottom", // 标签位置
       },
-      attrs: nodeTemplate.portAttrs,
+      attrs: common.portAttrs,
     },
   },
   items: [
@@ -71,11 +70,11 @@ let ReadCsv = {
     };
     let data = node.getData();
     // 检查上游节点是否完成
-    if (!nodeTemplate.checkIncomingNodes(node, graph)) {
+    if (!common.checkIncomingNodes(node, graph)) {
       result = {
         type: "error",
-        message: ret.failedMessage(data.name),
-        description: ret.checkIncomingFailedDesc,
+        message: common.failedMessage(data.name),
+        description: common.checkIncomingFailedDesc,
       };
       return result;
     }
@@ -94,7 +93,7 @@ let ReadCsv = {
     });
     result = {
       type: "success",
-      message: ret.successMessage(data.name),
+      message: common.successMessage(data.name),
     };
     return result;
   },
