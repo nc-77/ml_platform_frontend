@@ -19,6 +19,7 @@
 
 <script>
 import { notification } from "ant-design-vue";
+import * as common from "./common";
 import SplitFile from "./SplitFile.js";
 import ReadCsv from "./ReadCsv.js";
 
@@ -37,11 +38,6 @@ export default {
   },
 
   methods: {
-    mapper(source, target) {
-      for (let key in target) {
-        target[key] = source?.[key] ?? target[key];
-      }
-    },
     // 运行情况提示框
     openNotificationWithIcon(result) {
       notification[result.type]({
@@ -69,9 +65,9 @@ export default {
   mounted() {
     let node = this.getNode();
     // 初始化数据绑定
-    this.mapper(node.data, this.$data);
+    common.mapper(node.data, this.$data);
     // 节点数据变化监听，从而绑定数据
-    node.on("change:data", ({ current }) => this.mapper(current, this.$data));
+    node.on("change:data", ({ current }) => common.mapper(current, this.$data));
     // 注册组件Run方法
     this.initNodeRun();
   },

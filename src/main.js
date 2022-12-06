@@ -4,5 +4,5 @@ import App from "./App.vue";
 import router from "./router/router";
 
 import "./assets/main.css";
-
+import "./assets/form.css"
 createApp(App).use(router).mount("#app");

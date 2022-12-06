@@ -1,3 +1,9 @@
+// 工具类函数
+const mapper = (source, target) => {
+  for (let key in target) {
+    target[key] = source?.[key] ?? target[key];
+  }
+};
 // 定义连接桩样式
 const portAttrs = {
   circle: {
@@ -42,6 +48,7 @@ const failedMessage = (nodeName) => {
 const checkIncomingFailedDesc = "原因：上游节点未完成";
 
 export {
+  mapper,
   checkIncomingNodes,
   portAttrs,
   successMessage,

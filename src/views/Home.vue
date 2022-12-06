@@ -34,11 +34,7 @@
         <div id="x6-graph" style="width: 100%; height: 100%"></div>
 
         <div class="param-container">
-          <param-form
-            :formState="formState"
-            v-show="currentNode"
-            @change-node-name="changeNodeName"
-          ></param-form>
+          <component :is="currentForm" :node="currentNode"></component>
         </div>
       </div>
     </div>
@@ -50,10 +46,11 @@ import { Graph, Addon, Shape, Cell, Path } from "@antv/x6";
 import "@antv/x6-vue-shape";
 import { notification } from "ant-design-vue";
 import NodeTemplate from "../components/NodeTemplate.vue";
-import ParamForm from "../components/ParamForm.vue";
 import * as MetaData from "./MetaData";
 import ReadCsv from "../components/ReadCsv";
 import SplitFile from "../components/SplitFile";
+import ReadCsvForm from "../components/ReadCsvForm.vue";
+import SplitFileForm from "../components/SplitFileForm.vue";
 import {
   FileDoneOutlined,
   ZoomInOutlined,
@@ -74,8 +71,8 @@ export default {
       graph: Graph,
       stencil: Stencil,
       currentNode: null,
-      formState: {},
-      nodeRun: "",
+      nodeRun: new Map(),
+      forms: new Map(),
     };
   },
   components: {
@@ -87,13 +84,14 @@ export default {
     ReloadOutlined,
     CaretRightOutlined,
     NodeTemplate,
-    ParamForm,
+    ReadCsvForm,
+    SplitFileForm,
   },
   mounted() {
+    this.initInject();
     this.initGraph();
     this.initStencil();
     this.initKeyboardFUN();
-    this.initNodeRun();
   },
   methods: {
     // 运行情况提示框
@@ -104,11 +102,15 @@ export default {
       });
     },
     // 依赖注入
-    initNodeRun() {
-      this.nodeRun = {
-        读CSV文件: ReadCsv.run,
-        拆分: SplitFile.run,
-      };
+    initInject() {
+      this.nodeRun = new Map([
+        ["读CSV文件", ReadCsv.run],
+        ["拆分", SplitFile.run],
+      ]);
+      this.forms = new Map([
+        ["读CSV文件", "ReadCsvForm"],
+        ["拆分", "SplitFileForm"],
+      ]);
     },
     topoSort(nodes) {
       let sortedNodes = new Array();
@@ -138,7 +140,7 @@ export default {
       return sortedNodes;
     },
     async runAll() {
-      //console.log("run all");
+      console.log("run all");
       let nodes = this.graph.getNodes();
       if (!nodes || nodes.length == 0) {
         return;
@@ -150,18 +152,19 @@ export default {
       };
       let ok = true;
       const sortedNodes = this.topoSort(nodes);
-      console.log(sortedNodes);
       for (let node of sortedNodes) {
         const label = node.data.label;
-        await this.nodeRun[label](node, this.graph).then((result) => {
-          console.log(result);
-          if (result.type == "error") {
-            ok = false;
-            if (result.description != ret.checkIncomingFailedDesc) {
-              this.openNotificationWithIcon(result);
+        await this.nodeRun
+          .get(label)(node, this.graph)
+          .then((result) => {
+            console.log(result);
+            if (result.type == "error") {
+              ok = false;
+              if (result.description != ret.checkIncomingFailedDesc) {
+                this.openNotificationWithIcon(result);
+              }
             }
-          }
-        });
+          });
       }
 
       if (ok) {
@@ -171,11 +174,6 @@ export default {
         };
         this.openNotificationWithIcon(finalResult);
       }
-    },
-    changeNodeName(newName) {
-      this.currentNode?.setData({
-        name: newName,
-      });
     },
     initGraph() {
       const graphContainer = document.getElementById("x6-graph");
@@ -235,10 +233,6 @@ export default {
       // 单击节点事件
       graph.on("node:click", ({ e, x, y, node, view }) => {
         this.currentNode = node;
-        this.formState = {
-          label: this.currentNode?.getData()?.label,
-          name: this.currentNode?.getData()?.name,
-        };
       });
       // 鼠标移入节点事件
       graph.on("node:mouseenter", (e) => {
@@ -454,6 +448,12 @@ export default {
       stencil.load([splitFile, mergeFile], "group2");
 
       this.stencil = stencil;
+    },
+  },
+  computed: {
+    currentForm() {
+      const label = this.currentNode?.getData()?.label;
+      return this.forms.get(label);
     },
   },
 };
