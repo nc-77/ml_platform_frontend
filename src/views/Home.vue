@@ -113,12 +113,12 @@ export default {
       ]);
     },
     topoSort(nodes) {
-      let sortedNodes = new Array();
-      let queue = new Array();
+      let sortedNodes = [];
+      let queue = [];
       let incoming = new Map();
       nodes?.forEach((node) => {
         const edges = this.graph.getIncomingEdges(node);
-        if (!edges || edges.length == 0) {
+        if (!edges || edges.length === 0) {
           queue.push(node);
           incoming[node.id] = 0;
         } else {
@@ -132,7 +132,7 @@ export default {
         outEdges?.forEach((edge) => {
           let targetId = edge.getTargetCellId();
           incoming[targetId]--;
-          if (incoming[targetId] == 0) {
+          if (incoming[targetId] === 0) {
             queue.push(this.graph.getCellById(targetId));
           }
         });
@@ -142,7 +142,7 @@ export default {
     async runAll() {
       console.log("run all");
       let nodes = this.graph.getNodes();
-      if (!nodes || nodes.length == 0) {
+      if (!nodes || nodes.length === 0) {
         return;
       }
       let finalResult = {
@@ -158,9 +158,9 @@ export default {
           .get(label)(node, this.graph)
           .then((result) => {
             console.log(result);
-            if (result.type == "error") {
+            if (result.type === "error") {
               ok = false;
-              if (result.description != ret.checkIncomingFailedDesc) {
+              if (result.description !== ret.checkIncomingFailedDesc) {
                 this.openNotificationWithIcon(result);
               }
             }
@@ -185,7 +185,6 @@ export default {
         panning: true,
         keyboard: true,
         clipboard: true,
-        selecting: true,
         history: {
           enabled: true,
           ignoreChange: true,

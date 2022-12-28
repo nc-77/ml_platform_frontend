@@ -153,8 +153,6 @@ export default {
 
 .menu-item {
   height: 32px;
-  height: var(--menu-line-height, 32px);
-  font-size: var(--menu-font-size, 12px);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
