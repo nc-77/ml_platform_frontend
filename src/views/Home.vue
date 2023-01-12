@@ -3,25 +3,43 @@
     <div class="nav">
       <div class="tablist">
         <a-button>
-          <template #icon><file-done-outlined /></template>保存
+          <template #icon>
+            <file-done-outlined/>
+          </template>
+          保存
         </a-button>
         <a-button @click="runAll">
-          <template #icon><caret-right-outlined /></template>运行
+          <template #icon>
+            <caret-right-outlined/>
+          </template>
+          运行
         </a-button>
         <a-button @click="this.graph.undo()">
-          <template #icon><undo-outlined /></template>撤销
+          <template #icon>
+            <undo-outlined/>
+          </template>
+          撤销
         </a-button>
         <!-- <a-button @click="this.graph.redo()">
           <template #icon><redo-outlined /></template>重做
         </a-button> -->
         <a-button @click="this.graph.zoom(0.2)">
-          <template #icon><zoom-in-outlined /></template>放大
+          <template #icon>
+            <zoom-in-outlined/>
+          </template>
+          放大
         </a-button>
         <a-button @click="this.graph.zoom(-0.2)">
-          <template #icon><zoom-out-outlined /></template>缩小
+          <template #icon>
+            <zoom-out-outlined/>
+          </template>
+          缩小
         </a-button>
         <a-button @click="this.graph.zoomTo(1)">
-          <template #icon><reload-outlined /></template>还原
+          <template #icon>
+            <reload-outlined/>
+          </template>
+          还原
         </a-button>
       </div>
     </div>
@@ -42,15 +60,11 @@
 </template>
 
 <script>
-import { Graph, Addon, Shape, Cell, Path } from "@antv/x6";
+import {Graph, Addon, Shape, Cell, Path} from "@antv/x6";
 import "@antv/x6-vue-shape";
-import { notification } from "ant-design-vue";
-import NodeTemplate from "../components/NodeTemplate.vue";
 import * as MetaData from "./MetaData";
-import ReadCsv from "../components/ReadCsv";
-import SplitFile from "../components/SplitFile";
+import * as common from "../components/common"
 import ReadCsvForm from "../components/ReadCsvForm.vue";
-import SplitFileForm from "../components/SplitFileForm.vue";
 import {
   FileDoneOutlined,
   ZoomInOutlined,
@@ -60,9 +74,10 @@ import {
   ReloadOutlined,
   CaretRightOutlined,
 } from "@ant-design/icons-vue";
+import ReadCsvNode from "@/components/ReadCsvNode.vue";
 
-const { Stencil } = Addon;
-const { Edge } = Shape;
+const {Stencil} = Addon;
+const {Edge} = Shape;
 
 export default {
   data() {
@@ -71,11 +86,11 @@ export default {
       graph: Graph,
       stencil: Stencil,
       currentNode: null,
-      nodeRun: new Map(),
       forms: new Map(),
     };
   },
   components: {
+    ReadCsvNode,
     FileDoneOutlined,
     ZoomInOutlined,
     ZoomOutOutlined,
@@ -83,35 +98,17 @@ export default {
     RedoOutlined,
     ReloadOutlined,
     CaretRightOutlined,
-    NodeTemplate,
     ReadCsvForm,
-    SplitFileForm,
   },
   mounted() {
-    this.initInject();
+    this.forms = new Map([
+      ["读CSV文件", "ReadCsvForm"],
+    ]);
     this.initGraph();
     this.initStencil();
     this.initKeyboardFUN();
   },
   methods: {
-    // 运行情况提示框
-    openNotificationWithIcon(result) {
-      notification[result.type]({
-        message: result.message,
-        description: result.description,
-      });
-    },
-    // 依赖注入
-    initInject() {
-      this.nodeRun = new Map([
-        ["读CSV文件", ReadCsv.run],
-        ["拆分", SplitFile.run],
-      ]);
-      this.forms = new Map([
-        ["读CSV文件", "ReadCsvForm"],
-        ["拆分", "SplitFileForm"],
-      ]);
-    },
     topoSort(nodes) {
       let sortedNodes = [];
       let queue = [];
@@ -139,6 +136,7 @@ export default {
       }
       return sortedNodes;
     },
+
     async runAll() {
       console.log("run all");
       let nodes = this.graph.getNodes();
@@ -153,33 +151,27 @@ export default {
       let ok = true;
       const sortedNodes = this.topoSort(nodes);
       for (let node of sortedNodes) {
-        const label = node.data.label;
-        await this.nodeRun
-          .get(label)(node, this.graph)
-          .then((result) => {
-            console.log(result);
-            if (result.type === "error") {
-              ok = false;
-              if (result.description !== ret.checkIncomingFailedDesc) {
-                this.openNotificationWithIcon(result);
-              }
-            }
-          });
+        const result = await node.data.run();
+        if (result.type === "error") {
+          ok = false;
+          common.openNotificationWithIcon(result);
+          break;
+        }
       }
-
+      console.log("ok",ok);
       if (ok) {
         finalResult = {
           type: "success",
           message: "一键运行成功！",
         };
-        this.openNotificationWithIcon(finalResult);
+        common.openNotificationWithIcon(finalResult);
       }
     },
     initGraph() {
       const graphContainer = document.getElementById("x6-graph");
       const width =
-        document.getElementsByClassName("graph-param-container").offsetWidth -
-        document.getElementsByClassName("param-container").offsetWidth;
+          document.getElementsByClassName("graph-param-container").offsetWidth -
+          document.getElementsByClassName("param-container").offsetWidth;
       const height = document.getElementsByClassName("sidebar");
       const graph = new Graph({
         panning: true,
@@ -230,7 +222,7 @@ export default {
         },
       });
       // 单击节点事件
-      graph.on("node:click", ({ e, x, y, node, view }) => {
+      graph.on("node:click", ({e, x, y, node, view}) => {
         this.currentNode = node;
       });
       // 鼠标移入节点事件
@@ -252,7 +244,7 @@ export default {
         });
       });
       // 边成功创建事件
-      graph.on("edge:connected", ({ edge }) => {
+      graph.on("edge:connected", ({edge}) => {
         edge.attr({
           line: {
             strokeDasharray: "",
@@ -260,15 +252,15 @@ export default {
         });
       });
       // 运行事件
-      graph.on("node:change:data", ({ node }) => {
+      graph.on("node:change:data", ({node}) => {
         const edges = graph.getIncomingEdges(node);
-        const { status } = node.getData();
+        const {status} = node.getData();
         edges?.forEach((edge) => {
           if (status === "running") {
             edge.attr("line/strokeDasharray", 5);
             edge.attr(
-              "line/style/animation",
-              "running-line 30s infinite linear"
+                "line/style/animation",
+                "running-line 30s infinite linear"
             );
           } else {
             edge.attr("line/strokeDasharray", "");
@@ -297,31 +289,31 @@ export default {
         return false;
       });
       this.graph.bindKey(
-        ["Delete", "Backspace"],
-        () => {
-          const cells = this.graph.getSelectedCells();
-          cells.forEach((e) => {
-            this.graph.removeNode(e);
-          });
-          return false;
-        },
-        "keyup"
+          ["Delete", "Backspace"],
+          () => {
+            const cells = this.graph.getSelectedCells();
+            cells.forEach((e) => {
+              this.graph.removeNode(e);
+            });
+            return false;
+          },
+          "keyup"
       );
       this.graph.bindKey(
-        "ctrl+z",
-        () => {
-          this.graph.history.undo();
-          return false;
-        },
-        "keyup"
+          "ctrl+z",
+          () => {
+            this.graph.history.undo();
+            return false;
+          },
+          "keyup"
       );
       this.graph.bindKey(
-        "ctrl+y",
-        () => {
-          this.graph.history.redo();
-          return false;
-        },
-        "keyup"
+          "ctrl+y",
+          () => {
+            this.graph.history.redo();
+            return false;
+          },
+          "keyup"
       );
     },
 
@@ -336,11 +328,11 @@ export default {
         notFoundText: "Not Found",
         stencilGraphWidth: 170,
         stencilGraphHeight:
-          document.getElementsByClassName("container") -
-          document.getElementsByClassName("nav"),
+            document.getElementsByClassName("container") -
+            document.getElementsByClassName("nav"),
         getDropNode(node) {
           // 返回一个新的节点作为实际放置到画布上的节点
-          const { width, height } = node.size();
+          const {width, height} = node.size();
           let newNode = node.clone();
           newNode.setData({
             showContextMenu: true,
@@ -386,65 +378,65 @@ export default {
 
       // 注册自定义节点
       Graph.registerNode(
-        "img-node",
-        {
-          inherit: "vue-shape",
-          component: {
-            template: `<NodeTemplate/>`,
-            components: {
-              NodeTemplate,
+          "read-csv-node",
+          {
+            inherit: "vue-shape",
+            component: {
+              template: `
+                <ReadCsvNode/>`,
+              components: {
+                ReadCsvNode,
+              },
             },
           },
-        },
-        true
+          true
       );
       // 注册自定义边
       Graph.registerEdge(
-        "dag-edge",
-        {
-          inherit: "edge",
-          attrs: {
-            line: {
-              stroke: "#C2C8D5",
-              strokeWidth: 1,
-              targetMarker: null,
+          "dag-edge",
+          {
+            inherit: "edge",
+            attrs: {
+              line: {
+                stroke: "#C2C8D5",
+                strokeWidth: 1,
+                targetMarker: null,
+              },
             },
           },
-        },
-        true
+          true
       );
       //注册自定义边控制器
       Graph.registerConnector(
-        "algo-connector",
-        (s, e) => {
-          const offset = 4;
-          const deltaY = Math.abs(e.y - s.y);
-          const control = Math.floor((deltaY / 3) * 2);
+          "algo-connector",
+          (s, e) => {
+            const offset = 4;
+            const deltaY = Math.abs(e.y - s.y);
+            const control = Math.floor((deltaY / 3) * 2);
 
-          const v1 = { x: s.x, y: s.y + offset + control };
-          const v2 = { x: e.x, y: e.y - offset - control };
+            const v1 = {x: s.x, y: s.y + offset + control};
+            const v2 = {x: e.x, y: e.y - offset - control};
 
-          return Path.normalize(
-            `M ${s.x} ${s.y}
+            return Path.normalize(
+                `M ${s.x} ${s.y}
        L ${s.x} ${s.y + offset}
        C ${v1.x} ${v1.y} ${v2.x} ${v2.y} ${e.x} ${e.y - offset}
        L ${e.x} ${e.y}
       `
-          );
-        },
-        true
+            );
+          },
+          true
       );
       // 创建数据源组组件实例
-      const readCsv = this.graph.createNode(ReadCsv.metaData);
-      const readExcel = this.graph.createNode(MetaData.ReadExcel);
+      const readCsv = this.graph.createNode(MetaData.ReadCsv);
 
       // 创建数据预处理组件实例
-      const splitFile = this.graph.createNode(SplitFile.metaData);
-      const mergeFile = this.graph.createNode(MetaData.MergeFile);
+      // const splitFile = this.graph.createNode(SplitFile.metaData);
+      // const mergeFile = this.graph.createNode(MetaData.MergeFile);
 
       // 挂载节点实例至组件库
-      stencil.load([readCsv, readExcel], "group1");
-      stencil.load([splitFile, mergeFile], "group2");
+      stencil.load([readCsv], "group1");
+      // stencil.load([splitFile, mergeFile], "group2");
 
       this.stencil = stencil;
     },
@@ -463,14 +455,17 @@ export default {
   width: 100%;
   height: 100%;
 }
+
 .nav {
   display: flex;
   height: 32px;
 }
+
 .tablist button {
   border-top: 0;
   border-bottom: 0;
 }
+
 .content {
   display: flex;
   width: 100%;
@@ -482,15 +477,18 @@ export default {
   height: 100%;
   border-top: 1px solid #d3dae5;
 }
+
 #x6-graph {
   border: 1px solid #d3dae5;
 }
+
 .graph-param-container {
   width: 100%;
   height: 100%;
   display: flex;
   justify-content: space-between;
 }
+
 .param-container {
   width: 318px;
   border: 1px solid #d3dae5;

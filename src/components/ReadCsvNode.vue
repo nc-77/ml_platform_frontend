@@ -1,75 +1,101 @@
 <template>
-  <a-dropdown :trigger="['contextmenu']" :disabled="!showContextMenu">
-    <div :class="nodeClass" class="node">
-      <img :src="logo" />
-      <span class="label">{{ name }}</span>
-      <span class="status">
-        <img :src="statusImg" v-if="statusImg" />
+  <div>
+    <a-dropdown :trigger="['contextmenu']" :disabled="!showContextMenu">
+      <div class="node" :class="nodeClass">
+        <img :src="logo"/>
+        <span class="label">{{ name }}</span>
+        <span class="status">
+        <img :src="statusImg" v-if="statusImg"/>
       </span>
-    </div>
-    <template #overlay>
-      <a-menu>
-        <a-menu-item class="menu-item" key="1" @click="run"
-          >运行该节点</a-menu-item
-        >
-      </a-menu>
-    </template>
-  </a-dropdown>
+      </div>
+      <template #overlay>
+        <a-menu>
+          <a-menu-item class="menu-item" key="1" @click="runReadCsv"
+          >运行该节点
+          </a-menu-item
+          >
+        </a-menu>
+      </template>
+    </a-dropdown>
+  </div>
 </template>
 
 <script>
-import { notification } from "ant-design-vue";
 import * as common from "./common";
-import SplitFile from "./SplitFile.js";
-import ReadCsv from "./ReadCsv.js";
+import * as res from "./result";
+
 
 export default {
-  name: "NodeTemplate",
   inject: ["getGraph", "getNode"],
   data() {
     return {
+      showContextMenu: false,
+      logo: "../src/assets/logo.png",
       label: "",
       name: "",
       status: "",
-      logo: "",
-      nodeRun: {},
-      showContextMenu: false,
     };
   },
-
   methods: {
-    // 运行情况提示框
-    openNotificationWithIcon(result) {
-      notification[result.type]({
-        message: result.message,
-        description: result.description,
-      });
-    },
-    // 依赖注入
-    initNodeRun() {
-      this.nodeRun = {
-        读CSV文件: ReadCsv.run,
-        拆分: SplitFile.run,
-      };
-    },
-    async run() {
+    async submitForm() {
       const node = this.getNode();
       const graph = this.getGraph();
-      const label = node.data.label;
-      this.nodeRun[label](node, graph).then((result) => {
-        this.openNotificationWithIcon(result);
+      node.setData({
+        status: "",
       });
+      let result = {
+        type: "",
+        message: "",
+        description: "",
+      };
+      const nodeData = node.getData();
+      // 检查上游节点是否完成
+      if (!common.checkIncomingNodes(node, graph)) {
+        result = {
+          type: "error",
+          message: res.failedMessage(nodeData.name),
+          description: res.checkIncomingFailedDesc,
+        };
+        return result;
+      }
+      node.setData({
+        status: "running",
+      });
+      // submit Form
+      let formData = new FormData();
+      nodeData.formState?.fileList.forEach( (file) => {
+        formData.append("file",file.originFileObj);
+      });
+      const response = await fetch("http://localhost:8081/upload", {
+        method: "POST",
+        body: formData,
+      });
+      // 处理上传结果并展示
+      const resp = await response.json();
+      const status = res.getStatus(resp.code);
+      node.setData({
+        status: status,
+      });
+      result = res.getResult(resp, nodeData);
+      return result;
+    },
+
+    async runReadCsv() {
+      const result = await this.submitForm();
+      common.openNotificationWithIcon(result);
     },
   },
 
   mounted() {
-    let node = this.getNode();
+    const node = this.getNode();
     // 初始化数据绑定
     common.mapper(node.data, this.$data);
     // 节点数据变化监听，从而绑定数据
-    node.on("change:data", ({ current }) => common.mapper(current, this.$data));
-    // 注册组件Run方法
-    this.initNodeRun();
+    node.on("change:data", ({current}) => common.mapper(current, this.$data));
+    // 绑定run方法供父组件调用
+    node.setData({
+      run: this.submitForm,
+    })
   },
 
   computed: {
@@ -99,12 +125,14 @@ export default {
   border-radius: 4px;
   box-shadow: 0 2px 5px 1px rgba(0, 0, 0, 0.06);
 }
+
 .node img {
   width: 20px;
   height: 20px;
   flex-shrink: 0;
   margin-left: 8px;
 }
+
 .node .label {
   display: inline-block;
   flex-shrink: 0;
@@ -113,15 +141,19 @@ export default {
   color: #666;
   font-size: 12px;
 }
+
 .node .status {
   flex-shrink: 0;
 }
-.node.success {
+
+.node .success {
   border-left: 4px solid #52c41a;
 }
-.node.failed {
+
+.node .error {
   border-left: 4px solid #ff4d4f;
 }
+
 .node.running .status img {
   animation: spin 1s linear infinite;
 }
@@ -131,16 +163,19 @@ export default {
   border-radius: 2px;
   box-shadow: 0 0 0 4px #d4e8fe;
 }
+
 .x6-node-selected .node.success {
   border-color: #52c41a;
   border-radius: 2px;
   box-shadow: 0 0 0 4px #ccecc0;
 }
-.x6-node-selected .node.failed {
+
+.x6-node-selected .node.error {
   border-color: #ff4d4f;
   border-radius: 2px;
   box-shadow: 0 0 0 4px #fedcdc;
 }
+
 .x6-edge:hover path:nth-child(2) {
   stroke: #1890ff;
   stroke-width: 1px;
@@ -158,6 +193,7 @@ export default {
   white-space: nowrap;
   word-wrap: normal;
 }
+
 @keyframes running-line {
   to {
     stroke-dashoffset: -1000;

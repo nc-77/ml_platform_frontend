@@ -1,103 +1,75 @@
-// 定义组件元数据
-const Port = {
-  groups: {
-    // 输入链接桩群组定义
-    in: {
-      position: "top",
-      label: {
-        position: "top", // 标签位置
-      },
-      attrs: {
-        circle: {
-          r: 4,
-          magnet: true,
-          stroke: "#31d0c6",
-          strokeWidth: 2,
-          fill: "#fff",
-          style: {
+// 定义连接桩样式
+const portAttrs = {
+    circle: {
+        r: 4,
+        magnet: true,
+        stroke: "#31d0c6",
+        strokeWidth: 2,
+        fill: "#fff",
+        style: {
             visibility: "hidden",
-          },
         },
-        text: {
-          fontSize: 12,
-        },
-      },
     },
-    // 输出链接桩群组定义
-    out: {
-      position: "bottom",
-      label: {
-        position: "bottom", // 标签位置
-      },
-      attrs: {
-        circle: {
-          r: 4,
-          magnet: true,
-          stroke: "#31d0c6",
-          strokeWidth: 2,
-          fill: "#fff",
-          style: {
-            visibility: "hidden",
-          },
-        },
-        text: {
-          fontSize: 12,
-        },
-      },
+    text: {
+        fontSize: 12,
     },
-  },
-  items: [
-    {
-      group: "in",
-      attrs: {
-        text: {
-          text: "输入",
-          style: {
-            visibility: "hidden",
-          },
-        },
-      },
-    },
-    {
-      group: "out",
-      attrs: {
-        text: {
-          text: "输出",
-          style: {
-            visibility: "hidden",
-          },
-        },
-      },
-    },
-  ],
 };
 
-const ReadExcel = {
-  shape: "img-node",
-  width: 140,
-  height: 36,
-  x: 290,
-  y: 110,
-  ports: Port,
-  data: {
-    label: "读EXCEL文件",
-    name: "读EXCEL文件",
-    status: "",
-    logo: "../src/assets/logo.png",
-  },
+// 定义ReadCsv组件元数据
+const ReadCsv = {
+    data: {
+        label: "读CSV文件",
+        name: "读CSV文件",
+        status: "",
+    },
+    shape: "read-csv-node",
+    width: 140,
+    height: 36,
+    ports: {
+        groups: {
+            // 输入链接桩群组定义
+            in: {
+                position: "top",
+                label: {
+                    position: "top", // 标签位置
+                },
+                attrs: portAttrs,
+            },
+            // 输出链接桩群组定义
+            out: {
+                position: "bottom",
+                label: {
+                    position: "bottom", // 标签位置
+                },
+                attrs: portAttrs,
+            },
+        },
+        items: [
+            {
+                group: "in",
+                attrs: {
+                    text: {
+                        text: "输入",
+                        style: {
+                            visibility: "hidden",
+                        },
+                    },
+                },
+            },
+            {
+                group: "out",
+                attrs: {
+                    text: {
+                        text: "输出",
+                        style: {
+                            visibility: "hidden",
+                        },
+                    },
+                },
+            },
+        ],
+    },
+
 };
-const MergeFile = {
-  shape: "img-node",
-  width: 140,
-  height: 36,
-  x: 290,
-  y: 110,
-  ports: Port,
-  data: {
-    label: "合并",
-    name: "合并",
-    status: "",
-    logo: "../src/assets/logo.png",
-  },
-};
-export { ReadExcel, MergeFile, Port };
+
+export {ReadCsv};
