@@ -47,7 +47,6 @@ import "@antv/x6-vue-shape";
 import { notification } from "ant-design-vue";
 import NodeTemplate from "../components/NodeTemplate.vue";
 import * as MetaData from "./MetaData";
-import ReadCsv from "../components/ReadCsv";
 import SplitFile from "../components/SplitFile";
 import ReadCsvForm from "../components/ReadCsvForm.vue";
 import SplitFileForm from "../components/SplitFileForm.vue";
@@ -60,6 +59,7 @@ import {
   ReloadOutlined,
   CaretRightOutlined,
 } from "@ant-design/icons-vue";
+import ReadCsvNode from "@/components/ReadCsvNode.vue";
 
 const { Stencil } = Addon;
 const { Edge } = Shape;
@@ -76,6 +76,7 @@ export default {
     };
   },
   components: {
+    ReadCsvNode,
     FileDoneOutlined,
     ZoomInOutlined,
     ZoomOutOutlined,
@@ -104,7 +105,7 @@ export default {
     // 依赖注入
     initInject() {
       this.nodeRun = new Map([
-        ["读CSV文件", ReadCsv.run],
+        // ["读CSV文件", this.$refs.readCsv.run],
         ["拆分", SplitFile.run],
       ]);
       this.forms = new Map([
@@ -154,8 +155,7 @@ export default {
       const sortedNodes = this.topoSort(nodes);
       for (let node of sortedNodes) {
         const label = node.data.label;
-        await this.nodeRun
-          .get(label)(node, this.graph)
+        await this.$refs.currentNode.run(node, this.graph)
           .then((result) => {
             console.log(result);
             if (result.type === "error") {
@@ -398,6 +398,19 @@ export default {
         },
         true
       );
+      Graph.registerNode(
+          "read-csv-node",
+          {
+            inherit: "vue-shape",
+            component: {
+              template: `<ReadCsvNode/>`,
+              components: {
+                ReadCsvNode,
+              },
+            },
+          },
+          true
+      );
       // 注册自定义边
       Graph.registerEdge(
         "dag-edge",
@@ -435,7 +448,7 @@ export default {
         true
       );
       // 创建数据源组组件实例
-      const readCsv = this.graph.createNode(ReadCsv.metaData);
+      const readCsv = this.graph.createNode(MetaData.ReadCsv);
       const readExcel = this.graph.createNode(MetaData.ReadExcel);
 
       // 创建数据预处理组件实例

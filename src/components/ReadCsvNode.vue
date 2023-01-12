@@ -1,7 +1,7 @@
 <template>
   <div>
     <a-dropdown :trigger="['contextmenu']" :disabled="!showContextMenu">
-      <div :class="nodeClass" class="node">
+      <div class="node" :class="nodeClass">
         <img :src="logo"/>
         <span class="label">{{ name }}</span>
         <span class="status">
@@ -10,7 +10,7 @@
       </div>
       <template #overlay>
         <a-menu>
-          <a-menu-item class="menu-item" key="1" @click="run"
+          <a-menu-item class="menu-item" key="1" @click="runReadCsv"
           >运行该节点
           </a-menu-item
           >
@@ -23,24 +23,19 @@
 <script>
 import {notification} from "ant-design-vue";
 import * as common from "./common";
-import SplitFile from "./SplitFile.js";
-import ReadCsvForm from "@/components/ReadCsvForm.vue";
+import * as res from "./result";
+
 
 export default {
-  name: "NodeTemplate",
   inject: ["getGraph", "getNode"],
   data() {
     return {
+      showContextMenu: false,
+      logo: "../src/assets/logo.png",
       label: "",
       name: "",
       status: "",
-      logo: "",
-      nodeRun: {},
-      showContextMenu: false,
     };
-  },
-  components: {
-    ReadCsvForm,
   },
   methods: {
     // 运行情况提示框
@@ -50,20 +45,47 @@ export default {
         description: result.description,
       });
     },
-    // 依赖注入
-    initNodeRun() {
-      this.nodeRun = {
-        // 读CSV文件: this.$refs.readCsv.run,
-        拆分: SplitFile.run,
-      };
-    },
-    async run() {
+
+    async runReadCsv() {
       const node = this.getNode();
       const graph = this.getGraph();
-      const label = node.data.label;
-      this.nodeRun[label](node, graph).then((result) => {
-        this.openNotificationWithIcon(result);
+      console.log("runReadCsv...", node.getData());
+      node.setData({
+        status: "",
       });
+      let result = {
+        type: "",
+        message: "",
+        description: "",
+      };
+      const nodeData = node.getData();
+      // 检查上游节点是否完成
+      if (!common.checkIncomingNodes(node, graph)) {
+        result = {
+          type: "error",
+          message: res.failedMessage(nodeData.name),
+          description: res.checkIncomingFailedDesc,
+        };
+        return result;
+      }
+      node.setData({
+        status: "running",
+      });
+      // do job
+      let formData = new FormData();
+      formData.append("file", nodeData.formState.selectedFile);
+      const response = await fetch("http://localhost:8081/upload", {
+        method: "POST",
+        body: formData,
+      });
+      // 处理上传结果并展示
+      const resp = await response.json();
+      const status = res.getStatus(resp.code);
+      node.setData({
+        status: status,
+      });
+      result = res.getResult(resp, nodeData);
+      this.openNotificationWithIcon(result);
     },
   },
 
@@ -73,8 +95,6 @@ export default {
     common.mapper(node.data, this.$data);
     // 节点数据变化监听，从而绑定数据
     node.on("change:data", ({current}) => common.mapper(current, this.$data));
-    // 注册组件Run方法
-    this.initNodeRun();
   },
 
   computed: {
@@ -125,11 +145,11 @@ export default {
   flex-shrink: 0;
 }
 
-.node.success {
+.node .success {
   border-left: 4px solid #52c41a;
 }
 
-.node.error {
+.node .error {
   border-left: 4px solid #ff4d4f;
 }
 

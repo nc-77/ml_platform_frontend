@@ -38,20 +38,10 @@ const checkIncomingNodes = (node, graph) => {
   return checkIncoming;
 };
 
-// 提醒信息
-const successMessage = (nodeName) => {
-  return nodeName + " 节点运行成功！";
-};
-const failedMessage = (nodeName) => {
-  return nodeName + " 节点运行失败！";
-};
-const checkIncomingFailedDesc = "原因：上游节点未完成";
+
 
 export {
   mapper,
   checkIncomingNodes,
   portAttrs,
-  successMessage,
-  failedMessage,
-  checkIncomingFailedDesc,
 };
