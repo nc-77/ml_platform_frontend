@@ -19,7 +19,7 @@
 </template>
 
 <script>
-import * as common from "./common";
+import * as common from "../common";
 import {UploadOutlined} from '@ant-design/icons-vue';
 
 export default {

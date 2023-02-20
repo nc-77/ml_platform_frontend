@@ -21,8 +21,8 @@
 </template>
 
 <script>
-import * as common from "./common";
-import * as res from "./result";
+import * as common from "../common";
+import * as res from "../result";
 
 
 export default {

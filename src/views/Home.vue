@@ -64,7 +64,22 @@ import {Graph, Addon, Shape, Cell, Path} from "@antv/x6";
 import "@antv/x6-vue-shape";
 import * as MetaData from "./MetaData";
 import * as common from "../components/common"
-import ReadCsvForm from "../components/ReadCsvForm.vue";
+
+import DataSet from "@/components/dataSet/DataSet.vue";
+import DataSetForm from "@/components/dataSet/DataSetForm.vue";
+import ReadCsvNode from "@/components/dataSet/ReadCsvNode.vue";
+import ReadCsvForm from "../components/dataSet/ReadCsvForm.vue";
+import DistinctNode from "@/components/preprocessing/DistinctNode.vue";
+import DistinctForm from "@/components/preprocessing/DistinctForm.vue";
+import GetLabelNode from "@/components/preprocessing/GetLabelNode.vue";
+import GetLabelForm from "@/components/preprocessing/GetLabelForm.vue";
+import SplitNode from "@/components/preprocessing/SplitNode.vue";
+import SplitForm from "@/components/preprocessing/SplitForm.vue";
+import LinerNode from "@/components/machineLearning/LinerNode.vue";
+import LinerForm from "@/components/machineLearning/LinerForm.vue";
+import PredictNode from "@/components/machineLearning/PredictNode.vue";
+import PredictForm from "@/components/machineLearning/PredictForm.vue";
+
 import {
   FileDoneOutlined,
   ZoomInOutlined,
@@ -74,7 +89,6 @@ import {
   ReloadOutlined,
   CaretRightOutlined,
 } from "@ant-design/icons-vue";
-import ReadCsvNode from "@/components/ReadCsvNode.vue";
 
 const {Stencil} = Addon;
 const {Edge} = Shape;
@@ -90,7 +104,21 @@ export default {
     };
   },
   components: {
+    DataSet,
+    DataSetForm,
     ReadCsvNode,
+    ReadCsvForm,
+    DistinctNode,
+    DistinctForm,
+    GetLabelNode,
+    GetLabelForm,
+    SplitNode,
+    SplitForm,
+    LinerNode,
+    LinerForm,
+    PredictNode,
+    PredictForm,
+
     FileDoneOutlined,
     ZoomInOutlined,
     ZoomOutOutlined,
@@ -98,11 +126,16 @@ export default {
     RedoOutlined,
     ReloadOutlined,
     CaretRightOutlined,
-    ReadCsvForm,
   },
   mounted() {
     this.forms = new Map([
       ["读CSV文件", "ReadCsvForm"],
+      ["预置数据集", "DataSetForm"],
+      ["数据去重", "DistinctForm"],
+      ["提取标签列", "GetLabelForm"],
+      ["数据划分", "SplitForm"],
+      ["线性回归", "LinerForm"],
+      ["预测", "PredictForm"]
     ]);
     this.initGraph();
     this.initStencil();
@@ -152,13 +185,13 @@ export default {
       const sortedNodes = this.topoSort(nodes);
       for (let node of sortedNodes) {
         const result = await node.data.run();
-        if (result.type === "error") {
+        if (result?.type === "error") {
           ok = false;
           common.openNotificationWithIcon(result);
           break;
         }
       }
-      console.log("ok",ok);
+      console.log("ok", ok);
       if (ok) {
         finalResult = {
           type: "success",
@@ -391,6 +424,91 @@ export default {
           },
           true
       );
+      Graph.registerNode(
+          "data-set",
+          {
+            inherit: "vue-shape",
+            component: {
+              template: `
+                <DataSet/>`,
+              components: {
+                DataSet,
+              },
+            },
+          },
+          true
+      );
+      Graph.registerNode(
+          "distinct-node",
+          {
+            inherit: "vue-shape",
+            component: {
+              template: `
+                <DistinctNode/>`,
+              components: {
+                DistinctNode,
+              },
+            },
+          },
+          true
+      );
+      Graph.registerNode(
+          "get-label-node",
+          {
+            inherit: "vue-shape",
+            component: {
+              template: `
+                <GetLabelNode/>`,
+              components: {
+                GetLabelNode,
+              },
+            },
+          },
+          true
+      );
+      Graph.registerNode(
+          "split-node",
+          {
+            inherit: "vue-shape",
+            component: {
+              template: `
+                <SplitNode/>`,
+              components: {
+                SplitNode,
+              },
+            },
+          },
+          true
+      );
+      Graph.registerNode(
+          "liner-node",
+          {
+            inherit: "vue-shape",
+            component: {
+              template: `
+                <LinerNode/>`,
+              components: {
+                LinerNode,
+              },
+            },
+          },
+          true
+      );
+      Graph.registerNode(
+          "predict-node",
+          {
+            inherit: "vue-shape",
+            component: {
+              template: `
+                <PredictNode/>`,
+              components: {
+                PredictNode,
+              },
+            },
+          },
+          true
+      );
+
       // 注册自定义边
       Graph.registerEdge(
           "dag-edge",
@@ -429,14 +547,19 @@ export default {
       );
       // 创建数据源组组件实例
       const readCsv = this.graph.createNode(MetaData.ReadCsv);
-
+      const dataSet1 = this.graph.createNode(MetaData.DataSet);
+      dataSet1.setData({name: "波士顿房价数据集"});
       // 创建数据预处理组件实例
-      // const splitFile = this.graph.createNode(SplitFile.metaData);
-      // const mergeFile = this.graph.createNode(MetaData.MergeFile);
-
+      const distinct = this.graph.createNode(MetaData.Distinct);
+      const splitFile = this.graph.createNode(MetaData.Split);
+      const getLabel = this.graph.createNode(MetaData.GetLabel);
+      // 创建机器学习组件实例
+      const linerReg = this.graph.createNode(MetaData.Liner);
+      const prediction = this.graph.createNode(MetaData.Predict);
       // 挂载节点实例至组件库
-      stencil.load([readCsv], "group1");
-      // stencil.load([splitFile, mergeFile], "group2");
+      stencil.load([dataSet1, readCsv], "group1");
+      stencil.load([distinct, splitFile, getLabel], "group2");
+      stencil.load([linerReg, prediction], "group3");
 
       this.stencil = stencil;
     },
