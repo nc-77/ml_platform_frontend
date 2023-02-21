@@ -52,7 +52,7 @@
         <div id="x6-graph" style="width: 100%; height: 100%"></div>
 
         <div class="param-container">
-          <component :is="currentForm" :node="currentNode"></component>
+          <component :is="currentForm" :node="currentNode" :key="currentNodeId"></component>
         </div>
       </div>
     </div>
@@ -569,6 +569,10 @@ export default {
       const label = this.currentNode?.getData()?.label;
       return this.forms.get(label);
     },
+    currentNodeId(){
+      console.log(this.currentNode?.id);
+      return this.currentNode? this.currentNode.id:"";
+    }
   },
 };
 </script>

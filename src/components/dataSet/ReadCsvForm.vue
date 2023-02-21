@@ -1,11 +1,11 @@
 <template>
-  <a-form layout="vertical" :model="formState">
+  <a-form layout="vertical">
     <div class="form-label">{{ label }}</div>
     <a-form-item label="组件名称">
       <a-input v-model:value="name" @change="changeNodeName"></a-input>
     </a-form-item>
     <a-form-item label="文件路径">
-      <a-upload v-model:file-list="formState.fileList"
+      <a-upload v-model:file-list="this.formState.fileList"
                 :max-count="1"
                 @change="handleFormChange"
                 :before-upload="beforeUpload">
@@ -20,14 +20,19 @@
 
 <script>
 import * as common from "../common";
+import {readCsvFormStore} from "@/store/form";
 import {UploadOutlined} from '@ant-design/icons-vue';
+
 
 export default {
   data() {
     return {
       label: "",
       name: "",
-      formStates: new Map,
+      formState: {
+        fileList: [],
+      },
+      formStore: "",
     };
   },
   props: ["node"],
@@ -37,6 +42,12 @@ export default {
   mounted() {
     // 初始化数据绑定
     common.mapper(this.node.data, this.$data);
+    // 初始化表单数据
+    this.formStore = readCsvFormStore();
+    const formStateFormStore = this.formStore.getFormStateById(this.node.id);
+    if (formStateFormStore) {
+      this.formState = formStateFormStore;
+    }
   },
   methods: {
     changeNodeName(e) {
@@ -45,23 +56,14 @@ export default {
     handleFormChange() {
       const originData = this.node.data;
       originData.formState = this.formState;
-      this.node.setData(originData,{overwrite:true});
+      this.node.setData(originData, {overwrite: true});
+      this.formStore.setFormStateById(this.node.id, this.formState);
     },
     beforeUpload(file) {
       return false;
     },
   },
-  computed:{
-    formState(){
-      const key = this.node.id;
-      if(!this.formStates.has(key)) {
-        this.formStates.set(key,{
-          fileList:[]
-        });
-      }
-      return this.formStates.get(key);
-    }
-  }
+
 };
 </script>
 

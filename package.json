@@ -12,6 +12,7 @@
     "@antv/x6-vue-shape": "^1.4.0",
     "ant-design-vue": "^3.2.15",
     "mitt": "^3.0.0",
+    "pinia": "^2.0.32",
     "vue": "^3.2.45",
     "vue-router": "^4.1.6"
   },
