@@ -192,7 +192,7 @@ const Split = {
                 group: "out",
                 attrs: {
                     text: {
-                        text: "训练集",
+                        text: "输出表1",
                         style: {
                             visibility: "hidden",
                         },
@@ -203,7 +203,7 @@ const Split = {
                 group: "out",
                 attrs: {
                     text: {
-                        text: "预测集",
+                        text: "输出表2",
                         style: {
                             visibility: "hidden",
                         },

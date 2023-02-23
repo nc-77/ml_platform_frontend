@@ -63,8 +63,8 @@ export default {
       });
       // submit Form
       let formData = new FormData();
-      nodeData.formState?.fileList.forEach( (file) => {
-        formData.append("file",file.originFileObj);
+      nodeData.formState?.fileList.forEach((file) => {
+        formData.append("file", file.originFileObj);
       });
       const response = await fetch("http://localhost:8081/upload", {
         method: "POST",
@@ -76,6 +76,12 @@ export default {
       node.setData({
         status: status,
       });
+      if (status === "success") {
+        node.setData({
+          fileId: resp.data.fileId,
+          fileName: resp.data.fileName
+        })
+      }
       result = res.getResult(resp, nodeData);
       return result;
     },

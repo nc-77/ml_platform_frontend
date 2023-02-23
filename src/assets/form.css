@@ -11,18 +11,25 @@
     font-size: 12px;
     line-height: 32px;
     cursor: default;
-    transition: all 0.3;
+    transition: all;
     border-bottom: 1px solid #d3dae5;
     margin-bottom: 12px;
-  }
-  .ant-form-item-label > label {
+}
+
+.ant-form-item-label > label {
     height: 32px;
     font-size: 12px;
-  }
-  .ant-input {
+}
+
+.ant-input {
     font-size: 12px;
-  }
-  .ant-form-item {
+}
+
+.ant-form-item {
     padding-left: 10px;
     padding-right: 10px;
-  }
+}
+
+.ant-select {
+    font-size: 12px;
+}

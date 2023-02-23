@@ -350,7 +350,7 @@ export default {
       );
     },
 
-    initStencil() {
+    async initStencil() {
       const stencil = new Stencil({
         title: "组件库",
         target: this.graph,
@@ -545,10 +545,7 @@ export default {
           },
           true
       );
-      // 创建数据源组组件实例
-      const readCsv = this.graph.createNode(MetaData.ReadCsv);
-      const dataSet1 = this.graph.createNode(MetaData.DataSet);
-      dataSet1.setData({name: "波士顿房价数据集"});
+
       // 创建数据预处理组件实例
       const distinct = this.graph.createNode(MetaData.Distinct);
       const splitFile = this.graph.createNode(MetaData.Split);
@@ -557,9 +554,28 @@ export default {
       const linerReg = this.graph.createNode(MetaData.Liner);
       const prediction = this.graph.createNode(MetaData.Predict);
       // 挂载节点实例至组件库
-      stencil.load([dataSet1, readCsv], "group1");
       stencil.load([distinct, splitFile, getLabel], "group2");
       stencil.load([linerReg, prediction], "group3");
+
+      // 加载并挂载预置数据集
+      const response = await fetch("http://localhost:8081/files/dataSets", {
+        method: "GET",
+      });
+      const resp = await response.json();
+      const dataSets = resp.data;
+      let dataSetNodes = [];
+      dataSets?.forEach(dataSet => {
+        const dataSetNode = this.graph.createNode(MetaData.DataSet);
+        dataSetNode.setData({
+          name: dataSet.fileName.substring(0, dataSet.fileName.lastIndexOf(".")),
+          fileId: dataSet.id,
+          fileName: dataSet.fileName,
+        })
+        dataSetNodes.push(dataSetNode);
+      });
+      const readCsv = this.graph.createNode(MetaData.ReadCsv);
+      dataSetNodes.push(readCsv);
+      stencil.load(dataSetNodes, "group1");
 
       this.stencil = stencil;
     },
@@ -569,9 +585,8 @@ export default {
       const label = this.currentNode?.getData()?.label;
       return this.forms.get(label);
     },
-    currentNodeId(){
-      console.log(this.currentNode?.id);
-      return this.currentNode? this.currentNode.id:"";
+    currentNodeId() {
+      return this.currentNode ? this.currentNode.id : "";
     }
   },
 };
