@@ -22,8 +22,7 @@ export default {
       status: "",
     };
   },
-  methods: {
-  },
+  methods: {},
 
   mounted() {
     const node = this.getNode();
@@ -33,8 +32,8 @@ export default {
     node.on("change:data", ({current}) => common.mapper(current, this.$data));
     // 绑定run方法供父组件调用
     node.setData({
-      run: ()=>{
-        this.status = "success"
+      status: "success",
+      run: () => {
       },
     })
   },

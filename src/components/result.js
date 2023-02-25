@@ -8,6 +8,7 @@ const failedMessage = (nodeName) => {
     return nodeName + " 节点运行失败！";
 };
 const checkIncomingFailedDesc = "原因：上游节点未完成";
+const checkIncomingNodeDesc = "原因：缺少必要的上游节点";
 
 const getStatus = (code) => {
     if ((code & 1) === 0) {
@@ -33,6 +34,7 @@ export {
     successMessage,
     failedMessage,
     checkIncomingFailedDesc,
+    checkIncomingNodeDesc,
     getStatus,
     getResult
 };

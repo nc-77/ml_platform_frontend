@@ -10,14 +10,11 @@
         <a-select-option value="按阈值划分" style="font-size: 12px">按阈值划分</a-select-option>
       </a-select>
     </a-form-item>
-    <a-form-item label="划分比例（表1占原数据的比例）" v-if="formState.selectMethod==='按比例划分'">
-      <a-space>
-        <a-input-number v-model:value="formState.spiltSize" :min="0" :max="100"></a-input-number>
-        <a-button @click="formState.spiltSize = 80">Reset</a-button>
-      </a-space>
+    <a-form-item label="划分比例（表1占原数据的比例），范围为0-1" v-if="formState.selectMethod==='按比例划分'">
+        <a-input v-model:value="formState.splitSize"></a-input>
     </a-form-item>
     <a-form-item label="随机数种子" v-if="formState.selectMethod==='按比例划分'">
-      <a-input v-model:value="formState.randomNum"></a-input>
+      <a-input v-model:value="formState.randomSeed"></a-input>
     </a-form-item>
     <a-form-item>
       <a-button type="primary" @click="saveForm">保存</a-button>
@@ -38,8 +35,8 @@ export default {
       name: "",
       formState: {
         selectMethod: "",
-        spiltSize: "",
-        randomNum: ""
+        splitSize: "",
+        randomSeed: ""
       },
       formStore: ""
     };
@@ -64,6 +61,7 @@ export default {
         formState: this.formState
       });
       this.formStore.setFormStateById(this.node.id, this.formState);
+      console.log(this.node.data);
       message.success("保存成功");
     }
   }

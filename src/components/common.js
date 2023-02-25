@@ -9,11 +9,7 @@ const mapper = (source, target) => {
 
 // 检查上游节点状态
 const checkIncomingNodes = (node, graph) => {
-    let edges = graph.getIncomingEdges(node);
-    let incomingNodes = [];
-    edges?.forEach((edge) => {
-        incomingNodes.push(edge.getSourceCell());
-    });
+    const incomingNodes = getIncomingNodes(node,graph);
     let checkIncoming = true;
     incomingNodes?.forEach((node) => {
         let check = false;
@@ -24,6 +20,15 @@ const checkIncomingNodes = (node, graph) => {
     });
     return checkIncoming;
 };
+// 获取上游节点
+const getIncomingNodes = (node, graph) => {
+    let edges = graph.getIncomingEdges(node);
+    let incomingNodes = [];
+    edges?.forEach((edge) => {
+        incomingNodes.push(edge.getSourceCell());
+    });
+    return incomingNodes;
+}
 // 显示运行结果
 const openNotificationWithIcon = (result) => {
     notification[result.type]({
@@ -37,4 +42,5 @@ export {
     mapper,
     checkIncomingNodes,
     openNotificationWithIcon,
+    getIncomingNodes,
 };
