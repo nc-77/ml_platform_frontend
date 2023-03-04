@@ -33,8 +33,7 @@ export default {
     // 绑定run方法供父组件调用
     node.setData({
       status: "success",
-      run: () => {
-      },
+      run: () => {},
     })
   },
 

@@ -10,7 +10,7 @@
       </div>
       <template #overlay>
         <a-menu>
-          <a-menu-item class="menu-item" key="1" @click="runSplit"
+          <a-menu-item class="menu-item" key="1" @click="runLinear"
           >运行该节点
           </a-menu-item
           >
@@ -35,10 +35,22 @@ export default {
       status: "",
     };
   },
+  mounted() {
+    const node = this.getNode();
+    const graph = this.getGraph();
+    // 初始化数据绑定
+    common.mapper(node.data, this.$data);
+    // 节点数据变化监听，从而绑定数据
+    node.on("change:data", ({current}) => common.mapper(current, this.$data));
+    // 绑定run方法供父组件调用
+    node.setData({
+      run: this.submitForm,
+    })
+  },
   methods: {
     async submitForm() {
-      const graph = this.getGraph();
       const node = this.getNode();
+      const graph = this.getGraph();
       node.setData({
         status: "",
       });
@@ -47,7 +59,7 @@ export default {
         message: "",
         description: "",
       };
-      let nodeData = node.getData();
+      const nodeData = node.getData();
       // 检查上游节点是否完成
       if (!common.checkIncomingNodes(node, graph)) {
         result = {
@@ -71,15 +83,15 @@ export default {
       node.setData({
         status: "running",
       });
+
       // 提交表单
       const formState = node.getData().formState;
       const postData = {
         fileId: inputFile?.fileId,
-        selectMethod: formState.selectMethod,
-        splitSize: Number(formState.splitSize),
-        randomSeed: Number(formState.randomSeed),
+        removeIndex: formState.removeIndex,
+        classIndex: formState.classIndex,
       }
-      const response = await fetch("http://localhost:8081/files/split", {
+      const response = await fetch("http://localhost:8081/train/linearRegression", {
         method: "POST",
         body: JSON.stringify(postData),
         headers: {
@@ -96,13 +108,9 @@ export default {
         const filesMap = new Map();
         filesMap.set(node.getPortAt(0).id, inputFile);
         filesMap.set(node.getPortAt(1).id, {
-          fileId: resp.data.file1Id,
-          fileName: resp.data.file1Name,
+          fileId: resp.data.modelId,
+          fileName: resp.data.modelName,
         });
-        filesMap.set(node.getPortAt(2).id, {
-          fileId: resp.data.file2Id,
-          fileName: resp.data.file2Name,
-        })
         node.setData({
           files: filesMap,
         });
@@ -111,21 +119,10 @@ export default {
       result = res.getResult(resp, nodeData);
       return result;
     },
-    async runSplit() {
+    async runLinear() {
       const result = await this.submitForm();
       common.openNotificationWithIcon(result);
     }
-  },
-  mounted() {
-    const node = this.getNode();
-    // 初始化数据绑定
-    common.mapper(node.data, this.$data);
-    // 节点数据变化监听，从而绑定数据
-    node.on("change:data", ({current}) => common.mapper(current, this.$data));
-    // 绑定run方法供父组件调用
-    node.setData({
-      run: this.submitForm,
-    })
   },
   computed: {
     nodeClass: function () {

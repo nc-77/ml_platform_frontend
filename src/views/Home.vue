@@ -75,8 +75,8 @@ import GetLabelNode from "@/components/preprocessing/GetLabelNode.vue";
 import GetLabelForm from "@/components/preprocessing/GetLabelForm.vue";
 import SplitNode from "@/components/preprocessing/SplitNode.vue";
 import SplitForm from "@/components/preprocessing/SplitForm.vue";
-import LinerNode from "@/components/machineLearning/LinerNode.vue";
-import LinerForm from "@/components/machineLearning/LinerForm.vue";
+import LinerNode from "@/components/machineLearning/LinearNode.vue";
+import LinerForm from "@/components/machineLearning/LinearForm.vue";
 import PredictNode from "@/components/machineLearning/PredictNode.vue";
 import PredictForm from "@/components/machineLearning/PredictForm.vue";
 
@@ -89,6 +89,7 @@ import {
   ReloadOutlined,
   CaretRightOutlined,
 } from "@ant-design/icons-vue";
+import {graphStore} from "@/store/form";
 
 const {Stencil} = Addon;
 const {Edge} = Shape;
@@ -302,6 +303,7 @@ export default {
         });
       });
       this.graph = graph;
+      graphStore().graph = graph;
     },
 
     // 键盘快捷键
@@ -566,11 +568,18 @@ export default {
       let dataSetNodes = [];
       dataSets?.forEach(dataSet => {
         const dataSetNode = this.graph.createNode(MetaData.DataSet);
+        const filesMap = new Map();
+        dataSetNode.getPorts()?.forEach(port => {
+          filesMap.set(port.id,{
+            fileId: dataSet.id,
+            fileName: dataSet.fileName,
+          })
+        });
         dataSetNode.setData({
           name: dataSet.fileName.substring(0, dataSet.fileName.lastIndexOf(".")),
-          fileId: dataSet.id,
-          fileName: dataSet.fileName,
+          files:filesMap,
         })
+        console.log(dataSetNode.getData());
         dataSetNodes.push(dataSetNode);
       });
       const readCsv = this.graph.createNode(MetaData.ReadCsv);

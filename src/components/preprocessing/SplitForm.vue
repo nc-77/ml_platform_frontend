@@ -10,8 +10,8 @@
         <a-select-option value="按阈值划分" style="font-size: 12px">按阈值划分</a-select-option>
       </a-select>
     </a-form-item>
-    <a-form-item label="划分比例（表1占原数据的比例），范围为0-1" v-if="formState.selectMethod==='按比例划分'">
-        <a-input v-model:value="formState.splitSize"></a-input>
+    <a-form-item label="划分比例(表1占原数据的比例) 范围为0-1" v-if="formState.selectMethod==='按比例划分'">
+      <a-input v-model:value="formState.splitSize"></a-input>
     </a-form-item>
     <a-form-item label="随机数种子" v-if="formState.selectMethod==='按比例划分'">
       <a-input v-model:value="formState.randomSeed"></a-input>
@@ -26,19 +26,19 @@
 <script>
 import * as common from "@/components/common";
 import {message} from 'ant-design-vue';
-import {splitFormStore} from "@/store/form";
+import {graphStore, splitFormStore} from "@/store/form";
 
 export default {
   data() {
     return {
       label: "",
       name: "",
+      formStore: "",
       formState: {
         selectMethod: "",
         splitSize: "",
         randomSeed: ""
       },
-      formStore: ""
     };
   },
   props: ["node"],
@@ -61,7 +61,6 @@ export default {
         formState: this.formState
       });
       this.formStore.setFormStateById(this.node.id, this.formState);
-      console.log(this.node.data);
       message.success("保存成功");
     }
   }

@@ -1,4 +1,5 @@
 import {defineStore} from 'pinia'
+import {Graph} from "@antv/x6";
 
 const defaultActions = {
     getFormStateById(id) {
@@ -11,6 +12,12 @@ const defaultActions = {
         this.formStates.set(id, formState);
     }
 }
+const graphStore = defineStore('graph',{
+    state: () => {
+        return {graph:Graph}
+    },
+
+})
 
 const readCsvFormStore = defineStore('readCsvForm', {
     state: () => {
@@ -24,5 +31,10 @@ const splitFormStore = defineStore('splitForm', {
     },
     actions: defaultActions
 })
-
-export {readCsvFormStore, splitFormStore}
+const linerFormStore = defineStore('linerForm', {
+    state: () => {
+        return {formStates: new Map,}
+    },
+    actions: defaultActions
+})
+export {graphStore,readCsvFormStore, splitFormStore,linerFormStore}
