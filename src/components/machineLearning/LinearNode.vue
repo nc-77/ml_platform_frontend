@@ -88,7 +88,6 @@ export default {
       const formState = node.getData().formState;
       const postData = {
         fileId: inputFile?.fileId,
-        removeIndex: formState.removeIndex,
         classIndex: formState.classIndex,
       }
       const response = await fetch("http://localhost:8081/train/linearRegression", {

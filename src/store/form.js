@@ -12,9 +12,9 @@ const defaultActions = {
         this.formStates.set(id, formState);
     }
 }
-const graphStore = defineStore('graph',{
+const graphStore = defineStore('graph', {
     state: () => {
-        return {graph:Graph}
+        return {graph: Graph}
     },
 
 })
@@ -37,4 +37,10 @@ const linerFormStore = defineStore('linerForm', {
     },
     actions: defaultActions
 })
-export {graphStore,readCsvFormStore, splitFormStore,linerFormStore}
+const predictFormStore = defineStore('predictForm', {
+    state: () => {
+        return {formStates: new Map,}
+    },
+    actions: defaultActions
+})
+export {graphStore, readCsvFormStore, splitFormStore, linerFormStore, predictFormStore}

@@ -4,13 +4,6 @@
     <a-form-item label="组件名称">
       <a-input v-model:value="name"></a-input>
     </a-form-item>
-    <a-form-item label="过滤特征列">
-      <a-select
-          v-model:value="formState.removeIndex"
-          mode="tags"
-          :options="fieldList"
-      ></a-select>
-    </a-form-item>
     <a-form-item label="选择标签列">
       <a-select
           v-model:value="formState.classIndex"
@@ -47,11 +40,10 @@ export default {
       name: "",
       formStore: "",
       formState: {
-        removeIndex: [],
         classIndex: "",
-        maxIterations:"100",
-        minDiff:"0.001",
-        linearMethods:[{"value":"None"}],
+        maxIterations: "100",
+        minDiff: "0.001",
+        linearMethods: [{"value": "None"}],
       },
       fieldList: [],
     };
@@ -76,6 +68,7 @@ export default {
         })
       })
     });
+    this.node.setData({formState: this.formState});
   },
   methods: {
     saveForm() {

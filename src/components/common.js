@@ -51,6 +51,26 @@ const getInputFile = (node, graph) => {
     const incomingPortId = getConnectedPort(node, graph, node.getPortAt(0));
     return incomingNode?.getData().files?.get(incomingPortId);
 }
+// 获取节点指定port对应的输入文件
+const getInputFileByPort = (node, graph, portIndex) => {
+    const port = node.getPortAt(portIndex);
+    let edges = graph.getConnectedEdges(node);
+    let connectPortId = null;
+    let incomingNode = null;
+    edges?.forEach((edge) => {
+        const sourcePortId = edge.getSourcePortId();
+        const targetPortId = edge.getTargetPortId();
+        if (sourcePortId === port.id) {
+            connectPortId = targetPortId;
+            incomingNode = edge.getTargetNode();
+        }
+        if (targetPortId === port.id) {
+            connectPortId = sourcePortId;
+            incomingNode = edge.getSourceNode();
+        }
+    })
+    return incomingNode?.getData().files?.get(connectPortId);
+}
 // 显示运行结果
 const openNotificationWithIcon = (result) => {
     notification[result.type]({
@@ -66,5 +86,6 @@ export {
     openNotificationWithIcon,
     getIncomingNodes,
     getConnectedPort,
-    getInputFile
+    getInputFile,
+    getInputFileByPort
 };

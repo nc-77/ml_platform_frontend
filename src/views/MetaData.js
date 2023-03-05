@@ -230,7 +230,7 @@ const Liner = {
                 group: "in",
                 attrs: {
                     text: {
-                        text: "输入",
+                        text: "训练集输入",
                         style: {
                             visibility: "hidden",
                         },
@@ -241,7 +241,7 @@ const Liner = {
                 group: "out",
                 attrs: {
                     text: {
-                        text: "输出",
+                        text: "模型输出",
                         style: {
                             visibility: "hidden",
                         },
@@ -268,7 +268,7 @@ const Predict = {
                 group: "in",
                 attrs: {
                     text: {
-                        text: "输入",
+                        text: "模型输入",
                         style: {
                             visibility: "hidden",
                         },
@@ -279,7 +279,7 @@ const Predict = {
                 group: "in",
                 attrs: {
                     text: {
-                        text: "输入",
+                        text: "预测集输入",
                         style: {
                             visibility: "hidden",
                         },
