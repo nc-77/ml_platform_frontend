@@ -43,4 +43,10 @@ const predictFormStore = defineStore('predictForm', {
     },
     actions: defaultActions
 })
-export {graphStore, readCsvFormStore, splitFormStore, linerFormStore, predictFormStore}
+const evalLinearFormStore = defineStore('evalLinearForm', {
+    state: () => {
+        return {formStates: new Map,}
+    },
+    actions: defaultActions
+})
+export {graphStore, readCsvFormStore, splitFormStore, linerFormStore, predictFormStore, evalLinearFormStore}

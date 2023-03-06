@@ -90,6 +90,8 @@ import {
   CaretRightOutlined,
 } from "@ant-design/icons-vue";
 import {graphStore} from "@/store/form";
+import EvalLinearForm from "@/components/machineLearning/EvalLinearForm.vue";
+import EvalLinearNode from "@/components/machineLearning/EvalLinearNode.vue";
 
 const {Stencil} = Addon;
 const {Edge} = Shape;
@@ -105,6 +107,7 @@ export default {
     };
   },
   components: {
+    EvalLinearNode,
     DataSet,
     DataSetForm,
     ReadCsvNode,
@@ -119,6 +122,7 @@ export default {
     LinerForm,
     PredictNode,
     PredictForm,
+    EvalLinearForm,
 
     FileDoneOutlined,
     ZoomInOutlined,
@@ -136,7 +140,8 @@ export default {
       ["提取标签列", "GetLabelForm"],
       ["数据划分", "SplitForm"],
       ["线性回归", "LinerForm"],
-      ["预测", "PredictForm"]
+      ["预测", "PredictForm"],
+      ["回归模型评估", "EvalLinearForm"]
     ]);
     this.initGraph();
     this.initStencil();
@@ -510,7 +515,20 @@ export default {
           },
           true
       );
-
+      Graph.registerNode(
+          "evalLinear-node",
+          {
+            inherit: "vue-shape",
+            component: {
+              template: `
+                <EvalLinearNode/>`,
+              components: {
+                EvalLinearNode,
+              },
+            },
+          },
+          true
+      );
       // 注册自定义边
       Graph.registerEdge(
           "dag-edge",
@@ -555,9 +573,10 @@ export default {
       // 创建机器学习组件实例
       const linerReg = this.graph.createNode(MetaData.Liner);
       const prediction = this.graph.createNode(MetaData.Predict);
+      const evalLinear = this.graph.createNode(MetaData.EvalLinear);
       // 挂载节点实例至组件库
       stencil.load([distinct, splitFile, getLabel], "group2");
-      stencil.load([linerReg, prediction], "group3");
+      stencil.load([linerReg, prediction, evalLinear], "group3");
 
       // 加载并挂载预置数据集
       const response = await fetch("http://localhost:8081/files/dataSets", {
@@ -570,14 +589,14 @@ export default {
         const dataSetNode = this.graph.createNode(MetaData.DataSet);
         const filesMap = new Map();
         dataSetNode.getPorts()?.forEach(port => {
-          filesMap.set(port.id,{
+          filesMap.set(port.id, {
             fileId: dataSet.id,
             fileName: dataSet.fileName,
           })
         });
         dataSetNode.setData({
           name: dataSet.fileName.substring(0, dataSet.fileName.lastIndexOf(".")),
-          files:filesMap,
+          files: filesMap,
         })
         console.log(dataSetNode.getData());
         dataSetNodes.push(dataSetNode);

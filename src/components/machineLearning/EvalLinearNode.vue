@@ -1,0 +1,137 @@
+<template>
+  <div>
+    <a-dropdown :trigger="['contextmenu']" :disabled="!showContextMenu">
+      <div class="node" :class="nodeClass">
+        <img :src="logo"/>
+        <span class="label">{{ name }}</span>
+        <span class="status">
+        <img :src="statusImg" v-if="statusImg"/>
+      </span>
+      </div>
+      <template #overlay>
+        <a-menu>
+          <a-menu-item class="menu-item" key="1" @click="runEvalLinear"
+          >运行该节点
+          </a-menu-item
+          >
+        </a-menu>
+      </template>
+    </a-dropdown>
+  </div>
+</template>
+
+<script>
+import * as common from "@/components/common";
+import * as res from "@/components/result";
+
+export default {
+  inject: ["getGraph", "getNode"],
+  data() {
+    return {
+      showContextMenu: false,
+      logo: "../src/assets/logo.png",
+      label: "",
+      name: "",
+      status: "",
+    };
+  },
+  mounted() {
+    const node = this.getNode();
+    // 初始化数据绑定
+    common.mapper(node.data, this.$data);
+    // 节点数据变化监听，从而绑定数据
+    node.on("change:data", ({current}) => common.mapper(current, this.$data));
+    // 绑定run方法供父组件调用
+    node.setData({
+      run: this.submitForm,
+    })
+  },
+  methods: {
+    async submitForm() {
+      const node = this.getNode();
+      const graph = this.getGraph();
+      node.setData({
+        status: "",
+      });
+      let result = {
+        type: "",
+        message: "",
+        description: "",
+      };
+      const nodeData = node.getData();
+      // 检查上游节点是否完成
+      if (!common.checkIncomingNodes(node, graph)) {
+        result = {
+          type: "error",
+          message: res.failedMessage(nodeData.name),
+          description: res.checkIncomingFailedDesc,
+        };
+        return result;
+      }
+      // 获取上游节点data
+      const incomingNodes = common.getIncomingNodes(node, graph);
+      if (incomingNodes.length === 0) {
+        result = {
+          type: "error",
+          message: res.failedMessage(nodeData.name),
+          description: res.checkIncomingNodeDesc,
+        };
+        return result;
+      }
+
+      node.setData({
+        status: "running",
+      });
+
+      // 提交表单
+      const inputFile = common.getInputFile(node, graph);
+      const formState = node.getData().formState;
+      const postData = {
+        fileId: inputFile?.fileId,
+      }
+      const response = await fetch("http://localhost:8081/eval/linearModel", {
+        method: "POST",
+        body: JSON.stringify(postData),
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      });
+      // 处理上传结果并展示
+      const resp = await response.json();
+      const status = res.getStatus(resp.code);
+      node.setData({
+        status: status,
+      });
+      if (status === "success") {
+        const filesMap = new Map();
+        filesMap.set(node.getPortAt(0).id, inputFile);
+        node.setData({
+          files: filesMap,
+          evalResult: resp.data,
+        });
+      }
+      console.log(node.getData());
+      result = res.getResult(resp, nodeData);
+      return result;
+    },
+
+    async runEvalLinear() {
+      const result = await this.submitForm();
+      common.openNotificationWithIcon(result);
+    }
+  },
+  computed: {
+    nodeClass: function () {
+      let clazz = {};
+      if (this.status) clazz[this.status] = true;
+      return clazz;
+    },
+    statusImg: function () {
+      if (!this.status) {
+        return "";
+      }
+      return "./src/assets/" + this.status + ".png";
+    },
+  },
+}
+</script>

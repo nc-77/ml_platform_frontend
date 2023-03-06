@@ -76,6 +76,7 @@ export default {
         formState: this.formState
       });
       this.formStore.setFormStateById(this.node.id, this.formState);
+      this.node.setData({name: this.name});
       console.log(this.node.data);
       message.success("保存成功");
     },

@@ -2,7 +2,7 @@
   <a-form layout="vertical">
     <div class="form-label">{{ label }}</div>
     <a-form-item label="组件名称">
-      <a-input v-model:value="name" @change="changeNodeName"></a-input>
+      <a-input v-model:value="name"></a-input>
     </a-form-item>
     <a-form-item label="划分方式">
       <a-select v-model:value="formState.selectMethod">
@@ -53,14 +53,12 @@ export default {
     }
   },
   methods: {
-    changeNodeName(e) {
-      this.node.setData({name: e.target.value});
-    },
     saveForm() {
       this.node.setData({
         formState: this.formState
       });
       this.formStore.setFormStateById(this.node.id, this.formState);
+      this.node.setData({name: this.name});
       message.success("保存成功");
     }
   }

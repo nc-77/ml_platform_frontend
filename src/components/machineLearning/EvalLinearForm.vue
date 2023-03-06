@@ -4,14 +4,14 @@
     <a-form-item label="组件名称">
       <a-input v-model:value="name"></a-input>
     </a-form-item>
-    <a-form-item label="选择标签列">
+    <a-form-item label="原回归值">
       <a-select
           v-model:value="formState.classIndex"
           :options="fieldList"
       ></a-select>
     </a-form-item>
-    <a-form-item label="输出结果列名">
-      <a-input v-model:value="formState.predictionResultName"></a-input>
+    <a-form-item label="预测回归值">
+      <a-input v-model:value="formState.predictionScore"></a-input>
     </a-form-item>
     <a-form-item>
       <a-button type="primary" @click="saveForm">保存</a-button>
@@ -21,7 +21,7 @@
 
 <script>
 import * as common from "@/components/common";
-import {graphStore, predictFormStore} from "@/store/form";
+import {graphStore, linerFormStore} from "@/store/form";
 import {message} from "ant-design-vue";
 
 export default {
@@ -31,8 +31,8 @@ export default {
       name: "",
       formStore: "",
       formState: {
-        classIndex: "",
-        predictionResultName: "prediction_result",
+        classIndex:"",
+        predictionScore:"prediction_score",
       },
       fieldList: [],
     };
@@ -42,14 +42,14 @@ export default {
     // 初始化数据绑定
     common.mapper(this.node.data, this.$data);
     // 初始化表单数据
-    this.formStore = predictFormStore();
+    this.formStore = linerFormStore();
     const formStateFormStore = this.formStore.getFormStateById(this.node.id);
     if (formStateFormStore) {
       this.formState = formStateFormStore;
     }
     const graph = graphStore().graph;
     // 初始化输入数据集字段
-    const inputFile = common.getInputFileByPort(this.node, graph, 1);
+    const inputFile = common.getInputFile(this.node, graph);
     this.getFileFieldList(inputFile?.fileId).then(fieldList => {
       fieldList?.forEach(field => {
         this.fieldList.push({
@@ -59,7 +59,7 @@ export default {
     });
     this.node.setData({formState: this.formState});
   },
-  methods: {
+  methods:{
     saveForm() {
       this.node.setData({
         formState: this.formState

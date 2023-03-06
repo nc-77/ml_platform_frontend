@@ -300,5 +300,42 @@ const Predict = {
         ],
     },
 }
-
-export {ReadCsv,DataSet,Distinct,GetLabel,Split,Liner,Predict};
+// 定义回归模型评估组件
+const EvalLinear = {
+    data: {
+        label: "回归模型评估",
+        name: "回归模型评估",
+        status: "",
+    },
+    shape: "evalLinear-node",
+    width: 140,
+    height: 36,
+    ports: {
+        groups: portGroups,
+        items: [
+            {
+                group: "in",
+                attrs: {
+                    text: {
+                        text: "输入",
+                        style: {
+                            visibility: "hidden",
+                        },
+                    },
+                },
+            },
+            {
+                group: "out",
+                attrs: {
+                    text: {
+                        text: "输出",
+                        style: {
+                            visibility: "hidden",
+                        },
+                    },
+                },
+            },
+        ],
+    },
+}
+export {ReadCsv,DataSet,Distinct,GetLabel,Split,Liner,Predict,EvalLinear};
