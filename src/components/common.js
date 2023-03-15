@@ -71,6 +71,12 @@ const getInputFileByPort = (node, graph, portIndex) => {
     })
     return incomingNode?.getData().files?.get(connectPortId);
 }
+// 获取文件列名
+const getFileFieldList = (fileId)=>{
+    return fetch("http://localhost:8081/files/" + fileId + "/fieldList", {
+        method: "GET"
+    }).then(res => res.json()).then(res => res.data);
+};
 // 显示运行结果
 const openNotificationWithIcon = (result) => {
     notification[result.type]({
@@ -87,5 +93,6 @@ export {
     getIncomingNodes,
     getConnectedPort,
     getInputFile,
-    getInputFileByPort
+    getInputFileByPort,
+    getFileFieldList
 };

@@ -10,7 +10,7 @@
       </div>
       <template #overlay>
         <a-menu>
-          <a-menu-item class="menu-item" key="1" @click="runReadCsv"
+          <a-menu-item key="1" @click="runReadCsv"
           >运行该节点
           </a-menu-item
           >
