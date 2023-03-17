@@ -10,30 +10,52 @@
       </div>
       <template #overlay>
         <a-menu>
-          <a-menu-item class="menu-item" key="1" @click="runEvalLinear"
-          >运行该节点
-          </a-menu-item
-          >
+          <a-menu-item @click="runEvalLinear" class="my-menu-item">
+            <template #icon>
+              <right-circle-outlined/>
+            </template>
+            运行当前节点
+          </a-menu-item>
+          <a-menu-item @click="tableVisible = true" class="my-menu-item">
+            <template #icon>
+              <monitor-outlined/>
+            </template>
+            查看数据结果
+          </a-menu-item>
         </a-menu>
       </template>
     </a-dropdown>
+    <a-modal v-model:visible="tableVisible" title="数据结果" :footer="null" width="100%"
+             wrap-class-name="full-modal">
+      <a-table :dataSource="dataSource" :columns="columns"/>
+    </a-modal>
   </div>
 </template>
 
 <script>
 import * as common from "@/components/common";
 import * as res from "@/components/result";
+import {nextTick} from "vue";
+import {Scatter} from "@antv/g2plot";
+import {MonitorOutlined, RightCircleOutlined} from "@ant-design/icons-vue";
 
 export default {
   inject: ["getGraph", "getNode"],
   data() {
     return {
       showContextMenu: false,
+      tableVisible: false,
+      columns: [],
+      dataSource: [],
       logo: "../src/assets/logo.png",
       label: "",
       name: "",
       status: "",
     };
+  },
+  components: {
+    MonitorOutlined,
+    RightCircleOutlined,
   },
   mounted() {
     const node = this.getNode();
@@ -47,6 +69,51 @@ export default {
     })
   },
   methods: {
+    getColumns() {
+      this.columns = [{
+        title: "相关系数",
+        dataIndex: "correlationCoefficient",
+        key: "correlationCoefficient"
+      }, {
+        title: "均方根误差",
+        dataIndex: "meanAbsoluteError",
+        key: "meanAbsoluteError"
+      }, {
+        title: "相对平方根误差",
+        dataIndex: "rootMeanSquaredError",
+        key: "rootMeanSquaredError"
+      }, {
+        title: "相对绝对误差",
+        dataIndex: "relativeAbsoluteError",
+        key: "relativeAbsoluteError"
+      }, {
+        title: "根相对平方误差",
+        dataIndex: "rootRelativeSquaredError",
+        key: "rootRelativeSquaredError"
+      }, {
+        title: "样本总数",
+        dataIndex: "numInstances",
+        key: "numInstances"
+      },]
+    },
+
+    async showPlot(column) {
+      this.plotVisible = true;
+      await nextTick();
+      const data = this.dataSource;
+      const scatterPlot = new Scatter('plotContainer', {
+        data,
+        xField: column.title,
+        yField: this.columns[this.columns.length - 1].title,
+        size: 5,
+        pointStyle: {
+          stroke: '#777777',
+          lineWidth: 1,
+          fill: '#5B8FF9',
+        },
+      });
+      scatterPlot.render();
+    },
     async submitForm() {
       const node = this.getNode();
       const graph = this.getGraph();
@@ -109,6 +176,8 @@ export default {
           files: filesMap,
           evalResult: resp.data,
         });
+        this.getColumns();
+        this.dataSource = [resp.data];
       }
       console.log(node.getData());
       result = res.getResult(resp, nodeData);

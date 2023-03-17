@@ -10,10 +10,12 @@
       </div>
       <template #overlay>
         <a-menu>
-          <a-menu-item class="menu-item" key="1" @click="runLinear"
-          >运行该节点
-          </a-menu-item
-          >
+          <a-menu-item @click="runLinear" class="my-menu-item">
+            <template #icon>
+              <right-circle-outlined/>
+            </template>
+            运行当前节点
+          </a-menu-item>
         </a-menu>
       </template>
     </a-dropdown>
@@ -23,6 +25,7 @@
 <script>
 import * as common from "@/components/common";
 import * as res from "@/components/result";
+import {RightCircleOutlined} from "@ant-design/icons-vue";
 
 export default {
   inject: ["getGraph", "getNode"],
@@ -35,9 +38,11 @@ export default {
       status: "",
     };
   },
+  components: {
+    RightCircleOutlined,
+  },
   mounted() {
     const node = this.getNode();
-    const graph = this.getGraph();
     // 初始化数据绑定
     common.mapper(node.data, this.$data);
     // 节点数据变化监听，从而绑定数据

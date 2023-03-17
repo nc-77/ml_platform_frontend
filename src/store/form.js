@@ -16,7 +16,6 @@ const graphStore = defineStore('graph', {
     state: () => {
         return {graph: Graph}
     },
-
 })
 
 const readCsvFormStore = defineStore('readCsvForm', {

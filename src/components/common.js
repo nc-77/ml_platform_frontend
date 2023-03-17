@@ -71,6 +71,11 @@ const getInputFileByPort = (node, graph, portIndex) => {
     })
     return incomingNode?.getData().files?.get(connectPortId);
 }
+// 获取节点指定port对应的文件
+const getFileByPort = (node,portIndex) => {
+    const port = node.getPortAt(portIndex);
+    return node.getData().files?.get(port.id);
+}
 // 获取文件列名
 const getFileFieldList = (fileId)=>{
     return fetch("http://localhost:8081/files/" + fileId + "/fieldList", {
@@ -94,5 +99,6 @@ export {
     getConnectedPort,
     getInputFile,
     getInputFileByPort,
-    getFileFieldList
+    getFileFieldList,
+    getFileByPort
 };

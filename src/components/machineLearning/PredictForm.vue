@@ -47,6 +47,7 @@ export default {
     if (formStateFormStore) {
       this.formState = formStateFormStore;
     }
+    this.formStore.setFormStateById(this.node.id, this.formState);
     const graph = graphStore().graph;
     // 初始化输入数据集字段
     const inputFile = common.getInputFileByPort(this.node, graph, 1);

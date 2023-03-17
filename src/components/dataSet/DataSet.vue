@@ -12,13 +12,13 @@
         <a-menu>
           <a-menu-item @click="showTable" class="my-menu-item">
             <template #icon>
-              <monitor-outlined />
+              <monitor-outlined/>
             </template>
             查看数据结果
           </a-menu-item>
           <a-sub-menu>
             <template #icon>
-              <bar-chart-outlined />
+              <bar-chart-outlined/>
             </template>
             <template #title><span class="my-menu-item">数据分布可视化</span></template>
             <a-menu-item v-for="(column) in columns.slice(0,-1)" @click="showPlot(column)" class="my-menu-item">
@@ -45,9 +45,9 @@
 
 <script>
 import * as common from "../common";
-import { nextTick } from 'vue'
-import { Scatter } from '@antv/g2plot';
-import { MonitorOutlined,BarChartOutlined } from "@ant-design/icons-vue";
+import {nextTick} from 'vue'
+import {Scatter} from '@antv/g2plot';
+import {MonitorOutlined, BarChartOutlined} from "@ant-design/icons-vue";
 
 export default {
   inject: ["getGraph", "getNode"],
@@ -64,10 +64,13 @@ export default {
       dataSource: [],
     };
   },
+  components: {
+    MonitorOutlined,
+    BarChartOutlined,
+  },
   methods: {
     getColumns() {
       const node = this.getNode();
-      const graph = this.getGraph();
       const [file] = node.getData().files.values();
       common.getFileFieldList(file?.fileId).then(columnNames => {
         columnNames?.forEach(name => {
@@ -86,7 +89,7 @@ export default {
       fetch("http://localhost:8081/files/" + file?.fileId + "/content", {
         method: "GET"
       }).then(res => res.json()).then(res => {
-        const originData =  JSON.parse(res.data);
+        const originData = JSON.parse(res.data);
         this.dataSource = originData.map((obj) => {
           const newObj = {};
           for (let [key, value] of Object.entries(obj)) {
@@ -107,7 +110,7 @@ export default {
       const scatterPlot = new Scatter('plotContainer', {
         data,
         xField: column.title,
-        yField: this.columns[this.columns.length-1].title,
+        yField: this.columns[this.columns.length - 1].title,
         size: 5,
         pointStyle: {
           stroke: '#777777',
@@ -136,10 +139,6 @@ export default {
       run: () => {
       },
     })
-  },
-  components:{
-    MonitorOutlined,
-    BarChartOutlined,
   },
   computed: {
     nodeClass: function () {

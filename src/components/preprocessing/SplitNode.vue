@@ -10,32 +10,139 @@
       </div>
       <template #overlay>
         <a-menu>
-          <a-menu-item class="menu-item" key="1" @click="runSplit"
-          >运行该节点
-          </a-menu-item
-          >
+          <a-menu-item @click="runSplit" class="my-menu-item">
+            <template #icon>
+              <right-circle-outlined/>
+            </template>
+            运行当前节点
+          </a-menu-item>
+          <a-menu-item @click="table1Visible=true" class="my-menu-item">
+            <template #icon>
+              <monitor-outlined/>
+            </template>
+            查看输出表1数据
+          </a-menu-item>
+          <a-menu-item @click="table2Visible=true" class="my-menu-item">
+            <template #icon>
+              <monitor-outlined/>
+            </template>
+            查看输出表2数据
+          </a-menu-item>
         </a-menu>
       </template>
     </a-dropdown>
+
+    <a-modal v-model:visible="table1Visible" title="数据结果" :footer="null" width="100%"
+             wrap-class-name="full-modal">
+      <a-table :dataSource="dataSource1" :columns="columns"/>
+    </a-modal>
+
+    <a-modal v-model:visible="table2Visible" title="数据结果" :footer="null" width="100%"
+             wrap-class-name="full-modal">
+      <a-table :dataSource="dataSource2" :columns="columns"/>
+    </a-modal>
+
   </div>
 </template>
 
 <script>
 import * as common from "@/components/common";
 import * as res from "@/components/result";
+import {MonitorOutlined, RightCircleOutlined} from "@ant-design/icons-vue";
+import {nextTick} from "vue";
+import {Scatter} from "@antv/g2plot";
 
 export default {
   inject: ["getGraph", "getNode"],
   data() {
     return {
       showContextMenu: false,
+      table1Visible: false,
+      table2Visible: false,
+      columns: [],
+      dataSource1: [],
+      dataSource2: [],
       logo: "../src/assets/logo.png",
       label: "",
       name: "",
       status: "",
     };
   },
+  components: {
+    MonitorOutlined,
+    RightCircleOutlined,
+  },
   methods: {
+    getColumns() {
+      this.columns = [];
+      const node = this.getNode();
+      const file = common.getFileByPort(node, 1);
+      common.getFileFieldList(file?.fileId).then(columnNames => {
+        columnNames?.forEach(name => {
+          this.columns.push({
+            title: name,
+            dataIndex: name,
+            key: name,
+          })
+        })
+      })
+    },
+    getDataSources() {
+      this.dataSource1 = [];
+      this.dataSource2 = [];
+      const node = this.getNode();
+      const outputFile1 = common.getFileByPort(node,1);
+      const outputFile2 = common.getFileByPort(node,2);
+      fetch("http://localhost:8081/files/" + outputFile1?.fileId + "/content", {
+        method: "GET"
+      }).then(res => res.json()).then(res => {
+        const originData = JSON.parse(res.data);
+        this.dataSource1 = originData.map((obj) => {
+          const newObj = {};
+          for (let [key, value] of Object.entries(obj)) {
+            if (!isNaN(parseFloat(value))) {
+              newObj[key] = parseFloat(value);
+            } else {
+              newObj[key] = value;
+            }
+          }
+          return newObj;
+        });
+      });
+      fetch("http://localhost:8081/files/" + outputFile2?.fileId + "/content", {
+        method: "GET"
+      }).then(res => res.json()).then(res => {
+        const originData = JSON.parse(res.data);
+        this.dataSource2 = originData.map((obj) => {
+          const newObj = {};
+          for (let [key, value] of Object.entries(obj)) {
+            if (!isNaN(parseFloat(value))) {
+              newObj[key] = parseFloat(value);
+            } else {
+              newObj[key] = value;
+            }
+          }
+          return newObj;
+        });
+      })
+    },
+    async showPlot(column) {
+      this.plotVisible = true;
+      await nextTick();
+      const data = this.dataSource;
+      const scatterPlot = new Scatter('plotContainer', {
+        data,
+        xField: column.title,
+        yField: this.columns[this.columns.length - 1].title,
+        size: 5,
+        pointStyle: {
+          stroke: '#777777',
+          lineWidth: 1,
+          fill: '#5B8FF9',
+        },
+      });
+      scatterPlot.render();
+    },
     async submitForm() {
       const graph = this.getGraph();
       const node = this.getNode();
@@ -106,6 +213,8 @@ export default {
         node.setData({
           files: filesMap,
         });
+        this.getColumns();
+        this.getDataSources();
       }
       console.log(node.getData());
       result = res.getResult(resp, nodeData);

@@ -10,19 +10,50 @@
       </div>
       <template #overlay>
         <a-menu>
-          <a-menu-item key="1" @click="runReadCsv"
-          >运行该节点
-          </a-menu-item
-          >
+          <a-menu-item @click="runReadCsv" class="my-menu-item">
+            <template #icon>
+              <right-circle-outlined/>
+            </template>
+            运行当前节点
+          </a-menu-item>
+          <a-menu-item @click="showTable" class="my-menu-item">
+            <template #icon>
+              <monitor-outlined/>
+            </template>
+            查看数据结果
+          </a-menu-item>
+          <a-sub-menu>
+            <template #icon>
+              <bar-chart-outlined/>
+            </template>
+            <template #title><span class="my-menu-item">数据分布可视化</span></template>
+            <a-menu-item v-for="(column) in columns.slice(0,-1)" @click="showPlot(column)" class="my-menu-item">
+              {{ column.title }}
+            </a-menu-item>
+          </a-sub-menu>
         </a-menu>
       </template>
     </a-dropdown>
+
+    <a-modal v-model:visible="tableVisible" title="数据结果" :footer="null" width="100%"
+             wrap-class-name="full-modal">
+      <a-table :dataSource="dataSource" :columns="columns"/>
+    </a-modal>
+
+    <a-modal v-model:visible="plotVisible" title="数据分布可视化" :footer="null" width="100%"
+             wrap-class-name="full-modal" :destroy-on-close=true>
+      <div id="plotContainer"></div>
+    </a-modal>
+
   </div>
 </template>
 
 <script>
 import * as common from "../common";
 import * as res from "../result";
+import {nextTick} from "vue";
+import {Scatter} from "@antv/g2plot";
+import {MonitorOutlined, BarChartOutlined, RightCircleOutlined} from "@ant-design/icons-vue";
 
 
 export default {
@@ -30,13 +61,78 @@ export default {
   data() {
     return {
       showContextMenu: false,
+      tableVisible: false,
+      plotVisible: false,
+      columns: [],
+      dataSource: [],
       logo: "../src/assets/logo.png",
       label: "",
       name: "",
       status: "",
     };
   },
+  components: {
+    MonitorOutlined,
+    BarChartOutlined,
+    RightCircleOutlined,
+  },
   methods: {
+    getColumns() {
+      this.columns = [];
+      const node = this.getNode();
+      console.log(node.getData());
+      const [file] = node.getData().files.values();
+      common.getFileFieldList(file?.fileId).then(columnNames => {
+        columnNames?.forEach(name => {
+          this.columns.push({
+            title: name,
+            dataIndex: name,
+            key: name,
+          })
+        })
+      })
+    },
+    getDataSources() {
+      this.dataSource = [];
+      const node = this.getNode();
+      const [file] = node.getData().files.values();
+      fetch("http://localhost:8081/files/" + file?.fileId + "/content", {
+        method: "GET"
+      }).then(res => res.json()).then(res => {
+        const originData = JSON.parse(res.data);
+        this.dataSource = originData.map((obj) => {
+          const newObj = {};
+          for (let [key, value] of Object.entries(obj)) {
+            if (!isNaN(parseFloat(value))) {
+              newObj[key] = parseFloat(value);
+            }else{
+              newObj[key] = value;
+            }
+          }
+          return newObj;
+        });
+      })
+    },
+    showTable() {
+      this.tableVisible = true;
+    },
+    async showPlot(column) {
+      this.plotVisible = true;
+      await nextTick();
+      const data = this.dataSource;
+      const scatterPlot = new Scatter('plotContainer', {
+        data,
+        xField: column.title,
+        yField: this.columns[this.columns.length - 1].title,
+        size: 5,
+        pointStyle: {
+          stroke: '#777777',
+          lineWidth: 1,
+          fill: '#5B8FF9',
+        },
+      });
+      scatterPlot.render();
+    },
     async submitForm() {
       const node = this.getNode();
       const graph = this.getGraph();
@@ -77,15 +173,17 @@ export default {
         status: status,
       });
       if (status === "success") {
+        const filesMap = new Map();
+        filesMap.set(node.getPortAt(0).id, resp.data);
         node.setData({
-          fileId: resp.data.fileId,
-          fileName: resp.data.fileName
-        })
+          files: filesMap,
+        });
+        this.getColumns();
+        this.getDataSources();
       }
       result = res.getResult(resp, nodeData);
       return result;
     },
-
     async runReadCsv() {
       const result = await this.submitForm();
       common.openNotificationWithIcon(result);

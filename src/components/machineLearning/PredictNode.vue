@@ -10,30 +10,55 @@
       </div>
       <template #overlay>
         <a-menu>
-          <a-menu-item class="menu-item" key="1" @click="runPredict"
-          >运行该节点
-          </a-menu-item
-          >
+          <a-menu-item @click="runPredict" class="my-menu-item">
+            <template #icon>
+              <right-circle-outlined/>
+            </template>
+            运行当前节点
+          </a-menu-item>
+          <a-menu-item @click="tableVisible=true" class="my-menu-item">
+            <template #icon>
+              <monitor-outlined/>
+            </template>
+            查看数据结果
+          </a-menu-item>
         </a-menu>
       </template>
     </a-dropdown>
+
+    <a-modal v-model:visible="tableVisible" title="数据结果" :footer="null" width="100%"
+             wrap-class-name="full-modal">
+      <a-table :dataSource="dataSource" :columns="columns"/>
+    </a-modal>
+
   </div>
 </template>
 
 <script>
 import * as common from "@/components/common";
 import * as res from "@/components/result";
+import {nextTick} from "vue";
+import {Scatter} from "@antv/g2plot";
+import {RightCircleOutlined, MonitorOutlined} from "@ant-design/icons-vue";
+import {predictFormStore} from "@/store/form";
 
 export default {
   inject: ["getGraph", "getNode"],
   data() {
     return {
       showContextMenu: false,
+      tableVisible: false,
+      columns: [],
+      dataSource: [],
       logo: "../src/assets/logo.png",
       label: "",
       name: "",
       status: "",
     };
+  },
+  components: {
+    RightCircleOutlined,
+    MonitorOutlined,
   },
   mounted() {
     const node = this.getNode();
@@ -46,8 +71,79 @@ export default {
       run: this.submitForm,
     })
   },
-  methods:{
-    async submitForm(){
+  methods: {
+    async getColumns() {
+      this.columns = [];
+      const node = this.getNode();
+      const file = common.getFileByPort(node, 2);
+      await common.getFileFieldList(file?.fileId).then(columnNames => {
+        columnNames?.forEach(name => {
+          this.columns.push({
+            title: name,
+            dataIndex: name,
+            key: name,
+          })
+        })
+      })
+      const formState = predictFormStore().getFormStateById(this.getNode().id);
+      this.columns.push({
+        title: formState.predictionResultName,
+        dataIndex: formState.predictionResultName,
+        key: formState.predictionResultName,
+      })
+    },
+    async getDataSources() {
+      this.dataSource = [];
+      const node = this.getNode();
+      const inputFile = common.getFileByPort(node, 1);
+      const predictedFile = common.getFileByPort(node, 2);
+      const formState = predictFormStore().getFormStateById(this.getNode().id);
+
+      await fetch("http://localhost:8081/files/" + inputFile?.fileId + "/content", {
+        method: "GET"
+      }).then(res => res.json()).then(res => {
+        const originData = JSON.parse(res.data);
+        this.dataSource = originData.map((obj) => {
+          const newObj = {};
+          for (let [key, value] of Object.entries(obj)) {
+            if (!isNaN(parseFloat(value))) {
+              newObj[key] = parseFloat(value);
+            } else {
+              newObj[key] = value;
+            }
+          }
+          return newObj;
+        });
+      })
+      await fetch("http://localhost:8081/predictedFiles/" + predictedFile?.fileId + "/labelValues", {
+        method: "GET"
+      }).then(res => res.json()).then(res => {
+        for (let i = 0; i < res.data?.length; i++) {
+          this.dataSource[i] = {
+            ...this.dataSource[i],
+            [formState.predictionResultName]: res.data[i],
+          }
+        }
+      })
+    },
+    async showPlot(column) {
+      this.plotVisible = true;
+      await nextTick();
+      const data = this.dataSource;
+      const scatterPlot = new Scatter('plotContainer', {
+        data,
+        xField: column.title,
+        yField: this.columns[this.columns.length - 1].title,
+        size: 5,
+        pointStyle: {
+          stroke: '#777777',
+          lineWidth: 1,
+          fill: '#5B8FF9',
+        },
+      });
+      scatterPlot.render();
+    },
+    async submitForm() {
       const node = this.getNode();
       const graph = this.getGraph();
       node.setData({
@@ -83,8 +179,8 @@ export default {
         status: "running",
       });
       // 提交表单
-      const inputModel = common.getInputFileByPort(node,graph,0);
-      const inputFile = common.getInputFileByPort(node, graph,1);
+      const inputModel = common.getInputFileByPort(node, graph, 0);
+      const inputFile = common.getInputFileByPort(node, graph, 1);
       const postData = {
         fileId: inputFile?.fileId,
         modelId: inputModel?.fileId,
@@ -110,12 +206,13 @@ export default {
         node.setData({
           files: filesMap,
         });
+        this.getColumns();
+        this.getDataSources();
       }
-      console.log(node.getData());
       result = res.getResult(resp, nodeData);
       return result;
     },
-    async runPredict(){
+    async runPredict() {
       const result = await this.submitForm();
       common.openNotificationWithIcon(result);
     }
