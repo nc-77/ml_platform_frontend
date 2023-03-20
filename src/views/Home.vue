@@ -1,55 +1,64 @@
 <template>
   <div class="container">
-    <div class="nav">
-      <div class="tablist">
-        <a-button>
-          <template #icon>
-            <file-done-outlined/>
-          </template>
-          保存
-        </a-button>
-        <a-button @click="runAll">
-          <template #icon>
-            <caret-right-outlined/>
-          </template>
-          运行
-        </a-button>
-        <a-button @click="this.graph.undo()">
-          <template #icon>
-            <undo-outlined/>
-          </template>
-          撤销
-        </a-button>
-        <!-- <a-button @click="this.graph.redo()">
-          <template #icon><redo-outlined /></template>重做
-        </a-button> -->
-        <a-button @click="this.graph.zoom(0.2)">
-          <template #icon>
-            <zoom-in-outlined/>
-          </template>
-          放大
-        </a-button>
-        <a-button @click="this.graph.zoom(-0.2)">
-          <template #icon>
-            <zoom-out-outlined/>
-          </template>
-          缩小
-        </a-button>
-        <a-button @click="this.graph.zoomTo(1)">
-          <template #icon>
-            <reload-outlined/>
-          </template>
-          还原
-        </a-button>
-      </div>
-    </div>
+    <a-page-header class="page-header"
+        style="border: 1px solid rgb(235, 237, 240)"
+        title="Title"
+        @back="() => null"
+    />
 
     <div class="content">
       <div class="sidebar">
         <div id="stencil"></div>
       </div>
+
+
       <div class="graph-param-container">
-        <div id="x6-graph" style="width: 100%; height: 100%"></div>
+        <div class="nav-graph-container">
+          <div class="nav">
+            <div class="tablist">
+              <a-button >
+                <template #icon>
+                  <file-done-outlined/>
+                </template>
+                保存
+              </a-button>
+              <a-button @click="runAll">
+                <template #icon>
+                  <caret-right-outlined/>
+                </template>
+                运行
+              </a-button>
+              <a-button @click="this.graph.undo()">
+                <template #icon>
+                  <undo-outlined/>
+                </template>
+                撤销
+              </a-button>
+              <!-- <a-button @click="this.graph.redo()">
+                <template #icon><redo-outlined /></template>重做
+              </a-button> -->
+              <a-button @click="this.graph.zoom(0.2)">
+                <template #icon>
+                  <zoom-in-outlined/>
+                </template>
+                放大
+              </a-button>
+              <a-button @click="this.graph.zoom(-0.2)">
+                <template #icon>
+                  <zoom-out-outlined/>
+                </template>
+                缩小
+              </a-button>
+              <a-button @click="this.graph.zoomTo(1)">
+                <template #icon>
+                  <reload-outlined/>
+                </template>
+                还原
+              </a-button>
+            </div>
+          </div>
+          <div id="x6-graph" style="width: 100%; height: 100%"></div>
+        </div>
 
         <div class="param-container">
           <component :is="currentForm" :node="currentNode" :key="currentNodeId"></component>
@@ -629,6 +638,7 @@ export default {
 .nav {
   display: flex;
   height: 32px;
+  border-top: 1px solid #d3dae5;
 }
 
 .tablist button {
@@ -639,7 +649,7 @@ export default {
 .content {
   display: flex;
   width: 100%;
-  height: calc(100% - 32px);
+  height: 100%;
 }
 
 #stencil {
@@ -658,9 +668,23 @@ export default {
   display: flex;
   justify-content: space-between;
 }
-
+.nav-graph-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
 .param-container {
   width: 318px;
   border: 1px solid #d3dae5;
+}
+.page-header {
+  height: 34px;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 12px;
+}
+.ant-page-header-heading{
+  height: 34px;
 }
 </style>
