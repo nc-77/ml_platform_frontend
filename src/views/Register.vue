@@ -2,6 +2,7 @@
   <div class="main">
     <div class="top">
       <span class="title">机器学习可视化编程平台</span>
+      <span class="subTitle">Machine learning visual programming platform</span>
     </div>
     <a-form
         :model="formState"
@@ -62,6 +63,7 @@
           <a-button :disabled="disabled" type="primary" html-type="submit" size="large"
                     :loading=loadingBtn
                     class="register-btn"
+                    @click="register"
           >
             注册
           </a-button>
@@ -77,6 +79,9 @@
 <script>
 import {reactive, computed, ref} from 'vue';
 import {UserOutlined, LockOutlined} from '@ant-design/icons-vue';
+import md5 from 'js-md5';
+import {getStatus} from "@/components/result";
+import {message} from "ant-design-vue";
 
 export default {
   components: {
@@ -91,9 +96,9 @@ export default {
     });
     const loadingBtn = ref(false);
     const disabled = computed(() => {
-      return !(formState.username && formState.password && formState.checkPass===formState.password);
+      return !(formState.username && formState.password && formState.checkPass === formState.password);
     });
-    let validatePass2 = async (_rule, value) => {
+    let validatePass = async (_rule, value) => {
       if (value === '') {
         return Promise.reject('请再次输入密码');
       } else if (value !== formState.password) {
@@ -104,7 +109,7 @@ export default {
     };
     const rules = {
       checkPass: [{
-        validator: validatePass2,
+        validator: validatePass,
         trigger: 'change',
       }],
     };
@@ -116,6 +121,29 @@ export default {
     };
   },
   methods: {
+    async register() {
+      this.loadingBtn = true;
+      const postData = {
+        username: this.formState.username,
+        password: md5(this.formState.password),
+      }
+      const res = await fetch("http://localhost:8081/user/register", {
+        method: "POST",
+        body: JSON.stringify(postData),
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      }).then(res => res.json());
+      const status = getStatus(res.code);
+      if (status === "success") {
+        message.success("注册成功");
+        localStorage.setItem("token",res.data?.uid);
+        this.$router.push("/userInfo/" + res.data?.uid);
+      }else{
+        message.error(res.message);
+      }
+      this.loadingBtn = false;
+    }
   }
 };
 </script>
@@ -130,8 +158,11 @@ export default {
 }
 
 .top {
+  display: flex;
+  flex-direction: column;
   margin-bottom: 40px;
 }
+
 
 .title {
   font-size: 33px;
@@ -140,6 +171,12 @@ export default {
   font-weight: 600;
   position: relative;
   top: 2px;
+}
+
+.subTitle {
+  font-size: 14px;
+  color: rgba(0, 0, 0, .45);
+  text-align: center;
 }
 
 .login-form {

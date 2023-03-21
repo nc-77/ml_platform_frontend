@@ -2,6 +2,7 @@
   <div class="main">
     <div class="top">
       <span class="title">机器学习可视化编程平台</span>
+      <span class="subTitle">Machine learning visual programming platform</span>
     </div>
     <a-form
         :model="formState"
@@ -70,8 +71,11 @@
 import {reactive, computed, ref} from 'vue';
 import {UserOutlined, LockOutlined} from '@ant-design/icons-vue';
 import {message} from "ant-design-vue";
+import md5 from "js-md5";
+import {getStatus} from "@/components/result";
 
 export default {
+  name: "Login",
   components: {
     UserOutlined,
     LockOutlined,
@@ -80,7 +84,7 @@ export default {
     const formState = reactive({
       username: 'admin',
       password: 'admin',
-      remember: false,
+      remember: true,
     });
     const loadingBtn = ref(false);
     const disabled = computed(() => {
@@ -93,12 +97,25 @@ export default {
     };
   },
   methods: {
-    login() {
+    async login() {
       this.loadingBtn = true;
-      if (this.formState.username === "admin" && this.formState.password === "admin") {
-        this.$router.push("/home");
+      const postData = {
+        username: this.formState.username,
+        password: md5(this.formState.password),
+      }
+      const res = await fetch("http://localhost:8081/user/login", {
+        method: "POST",
+        body: JSON.stringify(postData),
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      }).then(res => res.json());
+      const status = getStatus(res.code);
+      if (status === "success") {
+        localStorage.setItem("token",res.data?.uid);
+        this.$router.push("/userInfo/" + res.data?.uid);
       } else {
-        message.error("账户或密码错误");
+        message.error(res.message);
       }
       this.loadingBtn = false;
     }
@@ -117,6 +134,8 @@ export default {
 
 .top {
   margin-bottom: 40px;
+  display: flex;
+  flex-direction: column;
 }
 
 .title {
@@ -126,6 +145,12 @@ export default {
   font-weight: 600;
   position: relative;
   top: 2px;
+}
+
+.subTitle {
+  font-size: 14px;
+  color: rgba(0, 0, 0, .45);
+  text-align: center;
 }
 
 .login-form {
