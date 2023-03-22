@@ -138,7 +138,7 @@ export default {
       if (status === "success") {
         message.success("注册成功");
         localStorage.setItem("token",res.data?.uid);
-        this.$router.push("/userInfo/" + res.data?.uid);
+        this.$router.push("/userInfo");
       }else{
         message.error(res.message);
       }

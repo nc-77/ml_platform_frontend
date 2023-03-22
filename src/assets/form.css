@@ -44,3 +44,14 @@
     justify-content: space-between;
     align-items: center;
 }
+
+
+.flex-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.ant-collapse > .ant-collapse-item > .ant-collapse-header {
+    padding-left: 0;
+}
+

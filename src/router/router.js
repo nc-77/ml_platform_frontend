@@ -15,13 +15,13 @@ const routes = [
             if (!isAuthenticated()) {
                 return "/login";
             }
-            return {path: '/userInfo/' + localStorage.getItem("token")}
+            return {path: '/userInfo'}
         },
     },
     {path: "/home", component: Home},
     {path: "/login", component: Login, name: "Login"},
-    {path: "/register", component: Register},
-    {path: "/userInfo/:id", component: UserInfo, props: true}];
+    {path: "/register", component: Register, name: "Register"},
+    {path: "/userInfo", component: UserInfo}];
 
 // 创建路由实例并传递 `routes` 配置
 const router = createRouter({
@@ -32,8 +32,7 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from) => {
-    if (!isAuthenticated() && to.name !== 'Login') {
-        console.log(isAuthenticated(), to);
+    if (!isAuthenticated() && to.name !== 'Login' && to.name !== "Register") {
         // 将用户重定向到登录页面
         return {name: 'Login'}
     }
