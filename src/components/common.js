@@ -7,6 +7,21 @@ const mapper = (source, target) => {
     }
 };
 
+const isEmpty = (val) => {
+    return !(val !== undefined && val !== null && val !== '');
+}
+// JavaScript deep copy function
+const deepCopy = (obj) => {
+    if (typeof obj !== 'object') {
+        return obj;
+    }
+    let newObj = Array.isArray(obj) ? [] : {};
+    for (let key in obj) {
+        newObj[key] = deepCopy(obj[key]);
+    }
+    return newObj;
+}
+
 // 检查上游节点状态
 const checkIncomingNodes = (node, graph) => {
     const incomingNodes = getIncomingNodes(node, graph);
@@ -72,12 +87,12 @@ const getInputFileByPort = (node, graph, portIndex) => {
     return incomingNode?.getData().files?.get(connectPortId);
 }
 // 获取节点指定port对应的文件
-const getFileByPort = (node,portIndex) => {
+const getFileByPort = (node, portIndex) => {
     const port = node.getPortAt(portIndex);
     return node.getData().files?.get(port.id);
 }
 // 获取文件列名
-const getFileFieldList = (fileId)=>{
+const getFileFieldList = (fileId) => {
     return fetch("http://localhost:8081/files/" + fileId + "/fieldList", {
         method: "GET"
     }).then(res => res.json()).then(res => res.data);
@@ -93,6 +108,8 @@ const openNotificationWithIcon = (result) => {
 
 export {
     mapper,
+    isEmpty,
+    deepCopy,
     checkIncomingNodes,
     openNotificationWithIcon,
     getIncomingNodes,

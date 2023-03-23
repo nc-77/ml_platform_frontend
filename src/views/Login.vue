@@ -112,7 +112,7 @@ export default {
       }).then(res => res.json());
       const status = getStatus(res.code);
       if (status === "success") {
-        localStorage.setItem("token", res.data?.uid);
+        localStorage.setItem("token", res.data?.id);
         this.$router.push("/userInfo");
       } else {
         message.error(res.message);

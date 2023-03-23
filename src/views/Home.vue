@@ -3,7 +3,7 @@
     <a-page-header class="page-header"
         style="border: 1px solid rgb(235, 237, 240)"
         title="Title"
-        @back="() => null"
+        @back="this.$router.push('/userInfo')"
     />
 
     <div class="content">
