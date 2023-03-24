@@ -71,6 +71,7 @@ export default {
   methods: {
     getColumns() {
       const node = this.getNode();
+      console.log(node.getData());
       const [file] = node.getData().files.values();
       common.getFileFieldList(file?.fileId).then(columnNames => {
         columnNames?.forEach(name => {
@@ -136,8 +137,7 @@ export default {
     // 绑定run方法供父组件调用
     node.setData({
       status: "success",
-      run: () => {
-      },
+      run: () => {},
     })
   },
   computed: {
@@ -150,7 +150,7 @@ export default {
       if (!this.status) {
         return "";
       }
-      return "./src/assets/" + this.status + ".png";
+      return "../src/assets/" + this.status + ".png";
     },
   },
 };

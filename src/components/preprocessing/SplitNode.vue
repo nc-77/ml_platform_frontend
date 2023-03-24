@@ -91,8 +91,8 @@ export default {
       this.dataSource1 = [];
       this.dataSource2 = [];
       const node = this.getNode();
-      const outputFile1 = common.getFileByPort(node,1);
-      const outputFile2 = common.getFileByPort(node,2);
+      const outputFile1 = common.getFileByPort(node, 1);
+      const outputFile2 = common.getFileByPort(node, 2);
       fetch("http://localhost:8081/files/" + outputFile1?.fileId + "/content", {
         method: "GET"
       }).then(res => res.json()).then(res => {
@@ -200,18 +200,21 @@ export default {
         status: status,
       });
       if (status === "success") {
-        const filesMap = new Map();
-        filesMap.set(node.getPortAt(0).id, inputFile);
-        filesMap.set(node.getPortAt(1).id, {
+        const files = [];
+        files.push({
+          ...inputFile,
+          portId: node.getPortAt(0).id,
+        }, {
           fileId: resp.data.file1Id,
           fileName: resp.data.file1Name,
-        });
-        filesMap.set(node.getPortAt(2).id, {
+          portId: node.getPortAt(1).id,
+        }, {
           fileId: resp.data.file2Id,
           fileName: resp.data.file2Name,
+          portId: node.getPortAt(2).id,
         })
         node.setData({
-          files: filesMap,
+          files: files,
         });
         this.getColumns();
         this.getDataSources();
@@ -246,7 +249,7 @@ export default {
       if (!this.status) {
         return "";
       }
-      return "./src/assets/" + this.status + ".png";
+      return "../src/assets/" + this.status + ".png";
     },
   },
 }

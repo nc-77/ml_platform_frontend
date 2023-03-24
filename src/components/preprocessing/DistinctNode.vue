@@ -57,7 +57,7 @@ export default {
       if (!this.status) {
         return "";
       }
-      return "./src/assets/" + this.status + ".png";
+      return "../src/assets/" + this.status + ".png";
     },
   },
 }

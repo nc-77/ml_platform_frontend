@@ -199,12 +199,19 @@ export default {
         status: status,
       });
       if (status === "success") {
-        const filesMap = new Map();
-        filesMap.set(node.getPortAt(0).id, inputModel);
-        filesMap.set(node.getPortAt(1).id, inputFile);
-        filesMap.set(node.getPortAt(2).id, resp.data);
+        const files = [];
+        files.push({
+          ...inputModel,
+          portId: node.getPortAt(0).id
+        }, {
+          ...inputFile,
+          portId: node.getPortAt(1).id
+        }, {
+          ...resp.data,
+          portId: node.getPortAt(2).id
+        })
         node.setData({
-          files: filesMap,
+          files: files,
         });
         this.getColumns();
         this.getDataSources();
@@ -227,7 +234,7 @@ export default {
       if (!this.status) {
         return "";
       }
-      return "./src/assets/" + this.status + ".png";
+      return "../src/assets/" + this.status + ".png";
     },
   },
 }

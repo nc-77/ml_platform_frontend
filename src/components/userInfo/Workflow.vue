@@ -62,7 +62,7 @@ export default {
   },
   methods: {
     toHome(){
-      this.$router.push("/home");
+      this.$router.push("/home/" + this.workflow.id);
     },
     async updateWorkflow() {
       const formState = this.$refs.updateForm.newFormState;

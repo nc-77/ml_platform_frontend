@@ -18,7 +18,7 @@ const routes = [
             return {path: '/userInfo'}
         },
     },
-    {path: "/home", component: Home},
+    {path: "/home/:workflowId", component: Home, props: true},
     {path: "/login", component: Login, name: "Login"},
     {path: "/register", component: Register, name: "Register"},
     {path: "/userInfo", component: UserInfo}];

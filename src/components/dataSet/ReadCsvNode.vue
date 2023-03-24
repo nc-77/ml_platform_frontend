@@ -105,7 +105,7 @@ export default {
           for (let [key, value] of Object.entries(obj)) {
             if (!isNaN(parseFloat(value))) {
               newObj[key] = parseFloat(value);
-            }else{
+            } else {
               newObj[key] = value;
             }
           }
@@ -173,10 +173,13 @@ export default {
         status: status,
       });
       if (status === "success") {
-        const filesMap = new Map();
-        filesMap.set(node.getPortAt(0).id, resp.data);
+        const files = [];
+        files.push({
+          ...resp.data,
+          portId: node.getPortAt(0).id,
+        })
         node.setData({
-          files: filesMap,
+          files: files,
         });
         this.getColumns();
         this.getDataSources();
@@ -212,7 +215,7 @@ export default {
       if (!this.status) {
         return "";
       }
-      return "./src/assets/" + this.status + ".png";
+      return "../src/assets/" + this.status + ".png";
     },
   },
 };

@@ -109,14 +109,17 @@ export default {
         status: status,
       });
       if (status === "success") {
-        const filesMap = new Map();
-        filesMap.set(node.getPortAt(0).id, inputFile);
-        filesMap.set(node.getPortAt(1).id, {
+        const files = [];
+        files.push({
+          ...inputFile,
+          portId: node.getPortAt(0).id
+        }, {
           fileId: resp.data.modelId,
           fileName: resp.data.modelName,
-        });
+          portId: node.getPortAt(1).id,
+        })
         node.setData({
-          files: filesMap,
+          files: files,
         });
       }
       console.log(node.getData());
@@ -138,7 +141,7 @@ export default {
       if (!this.status) {
         return "";
       }
-      return "./src/assets/" + this.status + ".png";
+      return "../src/assets/" + this.status + ".png";
     },
   },
 }

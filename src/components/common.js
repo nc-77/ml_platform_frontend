@@ -10,6 +10,8 @@ const mapper = (source, target) => {
 const isEmpty = (val) => {
     return !(val !== undefined && val !== null && val !== '');
 }
+
+
 // JavaScript deep copy function
 const deepCopy = (obj) => {
     if (typeof obj !== 'object') {
@@ -60,11 +62,15 @@ const getConnectedPort = (node, graph, port) => {
     })
     return connectPortId;
 }
+const filterObjectsByProperty = (arr, p, val) => {
+    return arr?.filter(obj => obj[p] === val);
+}
 // 当节点输入数据集只有一个时，获取其输入文件
 const getInputFile = (node, graph) => {
     const incomingNode = getIncomingNodes(node, graph)?.at(0);
     const incomingPortId = getConnectedPort(node, graph, node.getPortAt(0));
-    return incomingNode?.getData().files?.get(incomingPortId);
+    const files = incomingNode?.getData().files;
+    return filterObjectsByProperty(files, "portId", incomingPortId)?.at(0);
 }
 // 获取节点指定port对应的输入文件
 const getInputFileByPort = (node, graph, portIndex) => {
@@ -84,12 +90,14 @@ const getInputFileByPort = (node, graph, portIndex) => {
             incomingNode = edge.getSourceNode();
         }
     })
-    return incomingNode?.getData().files?.get(connectPortId);
+    const files = incomingNode?.getData().files;
+    return filterObjectsByProperty(files, "portId", connectPortId)?.at(0);
 }
 // 获取节点指定port对应的文件
 const getFileByPort = (node, portIndex) => {
     const port = node.getPortAt(portIndex);
-    return node.getData().files?.get(port.id);
+    const files = node?.getData().files;
+    return filterObjectsByProperty(files, "portId", port.id)?.at(0);
 }
 // 获取文件列名
 const getFileFieldList = (fileId) => {

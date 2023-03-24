@@ -38,7 +38,7 @@ export default {
     };
   },
   props: ["node"],
-  mounted() {
+  created() {
     // 初始化数据绑定
     common.mapper(this.node.data, this.$data);
     // 初始化表单数据
@@ -48,6 +48,9 @@ export default {
       this.formState = formStateFormStore;
     }
     this.formStore.setFormStateById(this.node.id, this.formState);
+    this.node.setData({formState: this.formState});
+  },
+  mounted() {
     const graph = graphStore().graph;
     // 初始化输入数据集字段
     const inputFile = common.getInputFileByPort(this.node, graph, 1);
@@ -58,7 +61,6 @@ export default {
         })
       })
     });
-    this.node.setData({formState: this.formState});
   },
   methods: {
     saveForm() {

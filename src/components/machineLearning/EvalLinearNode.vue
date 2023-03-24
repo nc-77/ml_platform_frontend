@@ -170,10 +170,13 @@ export default {
         status: status,
       });
       if (status === "success") {
-        const filesMap = new Map();
-        filesMap.set(node.getPortAt(0).id, inputFile);
+        const files = [];
+        files.push({
+          ...inputFile,
+          portId: node.getPortAt(0).id,
+        })
         node.setData({
-          files: filesMap,
+          files: files,
           evalResult: resp.data,
         });
         this.getColumns();
@@ -199,7 +202,7 @@ export default {
       if (!this.status) {
         return "";
       }
-      return "./src/assets/" + this.status + ".png";
+      return "../src/assets/" + this.status + ".png";
     },
   },
 }

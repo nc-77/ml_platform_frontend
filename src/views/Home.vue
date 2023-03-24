@@ -1,22 +1,41 @@
 <template>
   <div class="container">
-    <a-page-header class="page-header"
-        style="border: 1px solid rgb(235, 237, 240)"
-        title="Title"
-        @back="this.$router.push('/userInfo')"
-    />
+    <div class="page-header">
+      <a-page-header
+          @back="this.$router.push('/userInfo')"
+      >
+        <template #title>
+          <div style="font-size: 14px;font-weight: 600">
+            {{ this.workflow?.workflowName }}
+          </div>
+        </template>
+      </a-page-header>
+      <a-dropdown-button style="margin-right: 5px">
+        {{ this.user?.username }}
+        <template #overlay>
+          <a-menu>
+            <a-menu-item key="1" @click="logout">
+              <LoginOutlined/>
+              登出
+            </a-menu-item>
+          </a-menu>
+        </template>
+        <template #icon>
+          <UserOutlined/>
+        </template>
+      </a-dropdown-button>
+    </div>
 
     <div class="content">
       <div class="sidebar">
         <div id="stencil"></div>
       </div>
 
-
       <div class="graph-param-container">
         <div class="nav-graph-container">
           <div class="nav">
             <div class="tablist">
-              <a-button >
+              <a-button @click="saveGraph">
                 <template #icon>
                   <file-done-outlined/>
                 </template>
@@ -97,10 +116,15 @@ import {
   RedoOutlined,
   ReloadOutlined,
   CaretRightOutlined,
+  LoginOutlined,
+  UserOutlined
 } from "@ant-design/icons-vue";
 import {graphStore} from "@/store/form";
 import EvalLinearForm from "@/components/machineLearning/EvalLinearForm.vue";
 import EvalLinearNode from "@/components/machineLearning/EvalLinearNode.vue";
+import {isEmpty} from "@/components/common";
+import {message} from "ant-design-vue";
+import {getStatus} from "@/components/result";
 
 const {Stencil} = Addon;
 const {Edge} = Shape;
@@ -108,13 +132,15 @@ const {Edge} = Shape;
 export default {
   data() {
     return {
-      workName: "demo",
+      workflow: {},
+      user: {},
       graph: Graph,
       stencil: Stencil,
       currentNode: null,
       forms: new Map(),
     };
   },
+  props: ["workflowId"],
   components: {
     EvalLinearNode,
     DataSet,
@@ -140,8 +166,10 @@ export default {
     RedoOutlined,
     ReloadOutlined,
     CaretRightOutlined,
+    LoginOutlined,
+    UserOutlined
   },
-  mounted() {
+  async mounted() {
     this.forms = new Map([
       ["读CSV文件", "ReadCsvForm"],
       ["预置数据集", "DataSetForm"],
@@ -152,9 +180,15 @@ export default {
       ["预测", "PredictForm"],
       ["回归模型评估", "EvalLinearForm"]
     ]);
+    await this.fetchData();
     this.initGraph();
-    this.initStencil();
+    await this.initStencil();
     this.initKeyboardFUN();
+
+    // load graph
+    if (!isEmpty(this.workflow?.graphJson)) {
+      this.graph.fromJSON(this.workflow?.graphJson);
+    }
   },
   methods: {
     topoSort(nodes) {
@@ -184,7 +218,16 @@ export default {
       }
       return sortedNodes;
     },
-
+    async fetchData() {
+      this.userId = localStorage.getItem("token");
+      this.workflow = await this.fetchWorkflow();
+      this.user = await this.fetchUser(this.userId);
+      // 路由拦截
+      if (isEmpty(this.workflow) || this.workflow?.userId != this.userId) {
+        message.error("访问权限错误");
+        this.$router.push("/userInfo");
+      }
+    },
     async runAll() {
       console.log("run all");
       let nodes = this.graph.getNodes();
@@ -596,16 +639,17 @@ export default {
       let dataSetNodes = [];
       dataSets?.forEach(dataSet => {
         const dataSetNode = this.graph.createNode(MetaData.DataSet);
-        const filesMap = new Map();
+        const files = [];
         dataSetNode.getPorts()?.forEach(port => {
-          filesMap.set(port.id, {
+          files.push( {
+            portId: port.id,
             fileId: dataSet.id,
             fileName: dataSet.fileName,
           })
         });
         dataSetNode.setData({
           name: dataSet.fileName.substring(0, dataSet.fileName.lastIndexOf(".")),
-          files: filesMap,
+          files: files,
         })
         console.log(dataSetNode.getData());
         dataSetNodes.push(dataSetNode);
@@ -616,6 +660,32 @@ export default {
 
       this.stencil = stencil;
     },
+
+    fetchWorkflow() {
+      return fetch("http://localhost:8081/workflows/" + this.workflowId, {
+        method: "GET",
+      }).then(res => res.json()).then(res => res?.data);
+    },
+    fetchUser(id) {
+      return fetch("http://localhost:8081/user/" + id, {
+        method: "GET",
+      }).then(res => res.json()).then(res => res?.data);
+    },
+    logout() {
+      localStorage.clear();
+      this.$router.push("/login");
+    },
+    async saveGraph() {
+      this.workflow.graphJson = this.graph.toJSON();
+      const status = await fetch("http://localhost:8081/workflow", {
+        method: "POST",
+        body: JSON.stringify(this.workflow),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }).then(res => res.json()).then(res => getStatus(res?.code))
+      status === "success" ? message.success("保存成功") : message.error("保存失败");
+    }
   },
   computed: {
     currentForm() {
@@ -629,10 +699,18 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .container {
   width: 100%;
   height: 100%;
+}
+
+.page-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  height: 46px;
 }
 
 .nav {
@@ -649,7 +727,7 @@ export default {
 .content {
   display: flex;
   width: 100%;
-  height: 100%;
+  height: calc(100% - 46px);
 }
 
 #stencil {
@@ -668,23 +746,17 @@ export default {
   display: flex;
   justify-content: space-between;
 }
+
 .nav-graph-container {
   width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
 }
+
 .param-container {
   width: 318px;
   border: 1px solid #d3dae5;
 }
-.page-header {
-  height: 34px;
-  padding-top: 0;
-  padding-bottom: 0;
-  padding-left: 12px;
-}
-.ant-page-header-heading{
-  height: 34px;
-}
+
 </style>
