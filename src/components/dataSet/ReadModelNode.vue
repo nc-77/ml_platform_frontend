@@ -10,10 +10,12 @@
       </div>
       <template #overlay>
         <a-menu>
-          <a-menu-item class="menu-item" key="1" @click=""
-          >运行该节点
-          </a-menu-item
-          >
+          <a-menu-item @click="runReadModel" class="my-menu-item">
+            <template #icon>
+              <right-circle-outlined/>
+            </template>
+            运行当前节点
+          </a-menu-item>
         </a-menu>
       </template>
     </a-dropdown>
@@ -22,6 +24,7 @@
 
 <script>
 import * as common from "@/components/common";
+import {RightCircleOutlined} from "@ant-design/icons-vue";
 
 export default {
   inject: ["getGraph", "getNode"],
@@ -34,6 +37,9 @@ export default {
       status: "",
     };
   },
+  components: {
+    RightCircleOutlined
+  },
   mounted() {
     const node = this.getNode();
     // 初始化数据绑定
@@ -43,9 +49,19 @@ export default {
     // 绑定run方法供父组件调用
     node.setData({
       run: () => {
-        node.setData({status: "success"});
       },
     })
+  },
+  methods: {
+    runReadModel() {
+      const node = this.getNode();
+      node.setData({status: "success"});
+      const result = {
+        type: "success",
+        message: this.name + " 节点运行成功",
+      };
+      common.openNotificationWithIcon(result);
+    },
   },
   computed: {
     nodeClass: function () {

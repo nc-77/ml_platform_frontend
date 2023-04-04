@@ -22,6 +22,12 @@
             </template>
             查看数据结果
           </a-menu-item>
+          <a-menu-item @click="downloadFile" class="my-menu-item" >
+            <template #icon>
+              <cloud-download-outlined/>
+            </template>
+            数据结果下载
+          </a-menu-item>
         </a-menu>
       </template>
     </a-dropdown>
@@ -39,8 +45,9 @@ import * as common from "@/components/common";
 import * as res from "@/components/result";
 import {nextTick} from "vue";
 import {Scatter} from "@antv/g2plot";
-import {RightCircleOutlined, MonitorOutlined} from "@ant-design/icons-vue";
+import {RightCircleOutlined, MonitorOutlined,CloudDownloadOutlined} from "@ant-design/icons-vue";
 import {predictFormStore} from "@/store/form";
+import {message} from "ant-design-vue";
 
 export default {
   inject: ["getGraph", "getNode"],
@@ -59,6 +66,7 @@ export default {
   components: {
     RightCircleOutlined,
     MonitorOutlined,
+    CloudDownloadOutlined,
   },
   mounted() {
     const node = this.getNode();
@@ -126,6 +134,25 @@ export default {
         }
       })
     },
+    downloadFile() {
+      const node = this.getNode();
+      const predictedFile = common.getFileByPort(node, 2);
+      if(common.isEmpty(predictedFile)) {
+        message.error("下载失败，节点暂无数据");
+        return;
+      }
+      fetch("http://localhost:8081/predictedFiles/download/" + predictedFile?.fileId)
+          .then(response => response.blob())
+          .then(blob => {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', predictedFile?.fileName);
+                document.body.appendChild(link);
+                link.click();
+              }
+          )
+    },
     async showPlot(column) {
       this.plotVisible = true;
       await nextTick();
@@ -180,6 +207,7 @@ export default {
       });
       // 提交表单
       const inputModel = common.getInputFileByPort(node, graph, 0);
+      console.log(inputModel);
       const inputFile = common.getInputFileByPort(node, graph, 1);
       const postData = {
         fileId: inputFile?.fileId,

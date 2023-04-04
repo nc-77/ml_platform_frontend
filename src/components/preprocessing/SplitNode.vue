@@ -28,6 +28,18 @@
             </template>
             查看输出表2数据
           </a-menu-item>
+          <a-menu-item @click="downloadFile(1)" class="my-menu-item" >
+            <template #icon>
+              <cloud-download-outlined/>
+            </template>
+            输出表1下载
+          </a-menu-item>
+          <a-menu-item @click="downloadFile(2)" class="my-menu-item" >
+            <template #icon>
+              <cloud-download-outlined/>
+            </template>
+            输出表2下载
+          </a-menu-item>
         </a-menu>
       </template>
     </a-dropdown>
@@ -48,9 +60,10 @@
 <script>
 import * as common from "@/components/common";
 import * as res from "@/components/result";
-import {MonitorOutlined, RightCircleOutlined} from "@ant-design/icons-vue";
+import {MonitorOutlined, RightCircleOutlined,CloudDownloadOutlined} from "@ant-design/icons-vue";
 import {nextTick} from "vue";
 import {Scatter} from "@antv/g2plot";
+import {message} from "ant-design-vue";
 
 export default {
   inject: ["getGraph", "getNode"],
@@ -71,6 +84,7 @@ export default {
   components: {
     MonitorOutlined,
     RightCircleOutlined,
+    CloudDownloadOutlined,
   },
   methods: {
     getColumns() {
@@ -125,6 +139,26 @@ export default {
           return newObj;
         });
       })
+    },
+    downloadFile(portIndex) {
+      const node = this.getNode();
+      const outputFile = common.getFileByPort(node, portIndex);
+
+      if (common.isEmpty(outputFile)) {
+        message.error("下载失败，节点暂无数据");
+        return;
+      }
+      fetch("http://localhost:8081/files/download/" + outputFile?.fileId)
+          .then(response => response.blob())
+          .then(blob => {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', outputFile?.fileName);
+                document.body.appendChild(link);
+                link.click();
+              }
+          )
     },
     async showPlot(column) {
       this.plotVisible = true;

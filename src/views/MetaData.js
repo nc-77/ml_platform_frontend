@@ -60,6 +60,33 @@ const DataSet = {
         ],
     },
 };
+// 定义读模型文件组件元数据
+const ReadModel = {
+    data: {
+        label: "读模型文件",
+        name: "读模型文件",
+        status: "",
+    },
+    shape: "read-model-node",
+    width: 140,
+    height: 36,
+    ports: {
+        groups: portGroups,
+        items: [
+            {
+                group: "out",
+                attrs: {
+                    text: {
+                        text: "输出",
+                        style: {
+                            visibility: "hidden",
+                        },
+                    },
+                },
+            },
+        ],
+    },
+};
 // 定义ReadCsv组件元数据
 const ReadCsv = {
     data: {
@@ -96,44 +123,6 @@ const Distinct = {
         status: "",
     },
     shape: "distinct-node",
-    width: 140,
-    height: 36,
-    ports: {
-        groups: portGroups,
-        items: [
-            {
-                group: "in",
-                attrs: {
-                    text: {
-                        text: "输入",
-                        style: {
-                            visibility: "hidden",
-                        },
-                    },
-                },
-            },
-            {
-                group: "out",
-                attrs: {
-                    text: {
-                        text: "输出",
-                        style: {
-                            visibility: "hidden",
-                        },
-                    },
-                },
-            },
-        ],
-    },
-}
-// 定义提取标签列组件
-const GetLabel = {
-    data: {
-        label: "提取标签列",
-        name: "提取标签列",
-        status: "",
-    },
-    shape: "get-label-node",
     width: 140,
     height: 36,
     ports: {
@@ -338,4 +327,4 @@ const EvalLinear = {
         ],
     },
 }
-export {ReadCsv,DataSet,Distinct,GetLabel,Split,Liner,Predict,EvalLinear};
+export {ReadModel, ReadCsv, DataSet, Distinct, Split, Liner, Predict, EvalLinear};

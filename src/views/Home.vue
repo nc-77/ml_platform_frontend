@@ -95,12 +95,12 @@ import * as common from "../components/common"
 
 import DataSet from "@/components/dataSet/DataSet.vue";
 import DataSetForm from "@/components/dataSet/DataSetForm.vue";
+import ReadModelNode from "@/components/dataSet/ReadModelNode.vue";
+import ReadModelForm from "@/components/dataSet/ReadModelForm.vue";
 import ReadCsvNode from "@/components/dataSet/ReadCsvNode.vue";
 import ReadCsvForm from "../components/dataSet/ReadCsvForm.vue";
 import DistinctNode from "@/components/preprocessing/DistinctNode.vue";
 import DistinctForm from "@/components/preprocessing/DistinctForm.vue";
-import GetLabelNode from "@/components/preprocessing/GetLabelNode.vue";
-import GetLabelForm from "@/components/preprocessing/GetLabelForm.vue";
 import SplitNode from "@/components/preprocessing/SplitNode.vue";
 import SplitForm from "@/components/preprocessing/SplitForm.vue";
 import LinerNode from "@/components/machineLearning/LinearNode.vue";
@@ -126,6 +126,7 @@ import {isEmpty} from "@/components/common";
 import {message} from "ant-design-vue";
 import {getStatus} from "@/components/result";
 
+
 const {Stencil} = Addon;
 const {Edge} = Shape;
 
@@ -145,12 +146,12 @@ export default {
     EvalLinearNode,
     DataSet,
     DataSetForm,
+    ReadModelNode,
+    ReadModelForm,
     ReadCsvNode,
     ReadCsvForm,
     DistinctNode,
     DistinctForm,
-    GetLabelNode,
-    GetLabelForm,
     SplitNode,
     SplitForm,
     LinerNode,
@@ -172,10 +173,10 @@ export default {
   async mounted() {
     this.forms = new Map([
       ["读CSV文件", "ReadCsvForm"],
+      ["读模型文件","ReadModelForm"],
       ["预置数据集", "DataSetForm"],
       ["数据去重", "DistinctForm"],
-      ["提取标签列", "GetLabelForm"],
-      ["数据划分", "SplitForm"],
+      ["数据划分","SplitForm"],
       ["线性回归", "LinerForm"],
       ["预测", "PredictForm"],
       ["回归模型评估", "EvalLinearForm"]
@@ -184,7 +185,6 @@ export default {
     this.initGraph();
     await this.initStencil();
     this.initKeyboardFUN();
-
     // load graph
     if (!isEmpty(this.workflow?.graphJson)) {
       this.graph.fromJSON(this.workflow?.graphJson);
@@ -484,6 +484,20 @@ export default {
           true
       );
       Graph.registerNode(
+          "read-model-node",
+          {
+            inherit: "vue-shape",
+            component: {
+              template: `
+                <ReadModelNode/>`,
+              components: {
+                ReadModelNode,
+              },
+            },
+          },
+          true
+      );
+      Graph.registerNode(
           "data-set",
           {
             inherit: "vue-shape",
@@ -506,20 +520,6 @@ export default {
                 <DistinctNode/>`,
               components: {
                 DistinctNode,
-              },
-            },
-          },
-          true
-      );
-      Graph.registerNode(
-          "get-label-node",
-          {
-            inherit: "vue-shape",
-            component: {
-              template: `
-                <GetLabelNode/>`,
-              components: {
-                GetLabelNode,
               },
             },
           },
@@ -621,13 +621,12 @@ export default {
       // 创建数据预处理组件实例
       const distinct = this.graph.createNode(MetaData.Distinct);
       const splitFile = this.graph.createNode(MetaData.Split);
-      const getLabel = this.graph.createNode(MetaData.GetLabel);
       // 创建机器学习组件实例
       const linerReg = this.graph.createNode(MetaData.Liner);
       const prediction = this.graph.createNode(MetaData.Predict);
       const evalLinear = this.graph.createNode(MetaData.EvalLinear);
       // 挂载节点实例至组件库
-      stencil.load([distinct, splitFile, getLabel], "group2");
+      stencil.load([distinct, splitFile], "group2");
       stencil.load([linerReg, prediction, evalLinear], "group3");
 
       // 加载并挂载预置数据集
@@ -654,8 +653,9 @@ export default {
         console.log(dataSetNode.getData());
         dataSetNodes.push(dataSetNode);
       });
+      const readModel = this.graph.createNode(MetaData.ReadModel);
       const readCsv = this.graph.createNode(MetaData.ReadCsv);
-      dataSetNodes.push(readCsv);
+      dataSetNodes.push(readCsv,readModel);
       stencil.load(dataSetNodes, "group1");
 
       this.stencil = stencil;

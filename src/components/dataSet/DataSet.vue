@@ -25,7 +25,12 @@
               {{ column.title }}
             </a-menu-item>
           </a-sub-menu>
-
+          <a-menu-item @click="downloadFile" class="my-menu-item">
+            <template #icon>
+              <cloud-download-outlined/>
+            </template>
+            数据结果下载
+          </a-menu-item>
         </a-menu>
       </template>
     </a-dropdown>
@@ -47,7 +52,7 @@
 import * as common from "../common";
 import {nextTick} from 'vue'
 import {Scatter} from '@antv/g2plot';
-import {MonitorOutlined, BarChartOutlined} from "@ant-design/icons-vue";
+import {MonitorOutlined, BarChartOutlined, CloudDownloadOutlined} from "@ant-design/icons-vue";
 
 export default {
   inject: ["getGraph", "getNode"],
@@ -67,6 +72,7 @@ export default {
   components: {
     MonitorOutlined,
     BarChartOutlined,
+    CloudDownloadOutlined
   },
   methods: {
     getColumns() {
@@ -85,7 +91,6 @@ export default {
     },
     getDataSources() {
       const node = this.getNode();
-      const graph = this.getGraph();
       const [file] = node.getData().files.values();
       fetch("http://localhost:8081/files/" + file?.fileId + "/content", {
         method: "GET"
@@ -99,7 +104,21 @@ export default {
           return newObj;
         });
       })
-
+    },
+    downloadFile() {
+      const node = this.getNode();
+      const [file] = node.getData().files.values();
+      fetch("http://localhost:8081/files/download/" + file?.fileId)
+          .then(response => response.blob())
+          .then(blob => {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', file?.fileName);
+                document.body.appendChild(link);
+                link.click();
+              }
+          )
     },
     showTable() {
       this.tableVisible = true;
@@ -137,7 +156,8 @@ export default {
     // 绑定run方法供父组件调用
     node.setData({
       status: "success",
-      run: () => {},
+      run: () => {
+      },
     })
   },
   computed: {

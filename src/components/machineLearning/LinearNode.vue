@@ -16,6 +16,12 @@
             </template>
             运行当前节点
           </a-menu-item>
+          <a-menu-item @click="downloadModel" class="my-menu-item" >
+            <template #icon>
+              <cloud-download-outlined/>
+            </template>
+            模型导出
+          </a-menu-item>
         </a-menu>
       </template>
     </a-dropdown>
@@ -25,7 +31,8 @@
 <script>
 import * as common from "@/components/common";
 import * as res from "@/components/result";
-import {RightCircleOutlined} from "@ant-design/icons-vue";
+import {RightCircleOutlined,CloudDownloadOutlined} from "@ant-design/icons-vue";
+import {message} from "ant-design-vue";
 
 export default {
   inject: ["getGraph", "getNode"],
@@ -40,6 +47,7 @@ export default {
   },
   components: {
     RightCircleOutlined,
+    CloudDownloadOutlined
   },
   mounted() {
     const node = this.getNode();
@@ -125,6 +133,27 @@ export default {
       console.log(node.getData());
       result = res.getResult(resp, nodeData);
       return result;
+    },
+    downloadModel() {
+      const node = this.getNode();
+      const model = common.getFileByPort(node, 1);
+      if(common.isEmpty(model)) {
+        message.error("下载失败，节点暂无数据");
+        return;
+      }
+      fetch("http://localhost:8081/models/download/" + model?.fileId)
+          .then(response => response.blob())
+          .then(blob => {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                const modelName = model?.fileName.split(".")[0];
+                const newModelName = modelName + "-" + model?.fileId+ ".model";
+                link.setAttribute('download', newModelName);
+                document.body.appendChild(link);
+                link.click();
+              }
+          )
     },
     async runLinear() {
       const result = await this.submitForm();
