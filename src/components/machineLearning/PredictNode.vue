@@ -83,7 +83,7 @@ export default {
     async getColumns() {
       this.columns = [];
       const node = this.getNode();
-      const file = common.getFileByPort(node, 2);
+      const file = common.getFileByPort(node, 1);
       await common.getFileFieldList(file?.fileId).then(columnNames => {
         columnNames?.forEach(name => {
           this.columns.push({
@@ -241,8 +241,10 @@ export default {
         node.setData({
           files: files,
         });
-        this.getColumns();
-        this.getDataSources();
+        await this.getColumns();
+        await this.getDataSources();
+        console.log(this.columns);
+        console.log(this.dataSource);
       }
       result = res.getResult(resp, nodeData);
       return result;

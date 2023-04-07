@@ -126,7 +126,6 @@ import {isEmpty} from "@/components/common";
 import {message} from "ant-design-vue";
 import {getStatus} from "@/components/result";
 
-
 const {Stencil} = Addon;
 const {Edge} = Shape;
 
@@ -173,10 +172,10 @@ export default {
   async mounted() {
     this.forms = new Map([
       ["读CSV文件", "ReadCsvForm"],
-      ["读模型文件","ReadModelForm"],
+      ["读模型文件", "ReadModelForm"],
       ["预置数据集", "DataSetForm"],
       ["数据去重", "DistinctForm"],
-      ["数据划分","SplitForm"],
+      ["数据划分", "SplitForm"],
       ["线性回归", "LinerForm"],
       ["预测", "PredictForm"],
       ["回归模型评估", "EvalLinearForm"]
@@ -463,6 +462,16 @@ export default {
               rowHeight: "compact",
             },
           },
+          {
+            name: "group4",
+            title: "预测及评估",
+            layoutOptions: {
+              columns: 1,
+              dx: 45,
+              dy: 10,
+              rowHeight: "compact",
+            },
+          },
         ],
       });
       // 挂载stencil
@@ -627,8 +636,8 @@ export default {
       const evalLinear = this.graph.createNode(MetaData.EvalLinear);
       // 挂载节点实例至组件库
       stencil.load([distinct, splitFile], "group2");
-      stencil.load([linerReg, prediction, evalLinear], "group3");
-
+      stencil.load([linerReg], "group3");
+      stencil.load([prediction, evalLinear], "group4");
       // 加载并挂载预置数据集
       const response = await fetch("http://localhost:8081/files/dataSets", {
         method: "GET",
@@ -640,7 +649,7 @@ export default {
         const dataSetNode = this.graph.createNode(MetaData.DataSet);
         const files = [];
         dataSetNode.getPorts()?.forEach(port => {
-          files.push( {
+          files.push({
             portId: port.id,
             fileId: dataSet.id,
             fileName: dataSet.fileName,
@@ -655,7 +664,7 @@ export default {
       });
       const readModel = this.graph.createNode(MetaData.ReadModel);
       const readCsv = this.graph.createNode(MetaData.ReadCsv);
-      dataSetNodes.push(readCsv,readModel);
+      dataSetNodes.push(readCsv, readModel);
       stencil.load(dataSetNodes, "group1");
 
       this.stencil = stencil;

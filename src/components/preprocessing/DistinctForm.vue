@@ -4,6 +4,9 @@
     <a-form-item label="组件名称">
       <a-input v-model:value="name"></a-input>
     </a-form-item>
+    <a-form-item label="是否忽略标签列">
+      <a-switch v-model:checked="checked" />
+    </a-form-item>
   </a-form>
 </template>
 
@@ -15,6 +18,7 @@ export default {
     return {
       label: "",
       name: "",
+      checked: false,
     };
   },
   props: ["node"],

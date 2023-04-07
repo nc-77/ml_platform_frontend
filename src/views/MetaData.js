@@ -244,7 +244,7 @@ const Liner = {
 const Predict = {
     data: {
         label: "预测",
-        name: "预测",
+        name: "回归模型预测",
         status: "",
     },
     shape: "predict-node",
