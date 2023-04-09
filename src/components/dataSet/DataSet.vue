@@ -90,6 +90,7 @@ export default {
       })
     },
     getDataSources() {
+      this.dataSource = [];
       const node = this.getNode();
       const [file] = node.getData().files.values();
       fetch("http://localhost:8081/files/" + file?.fileId + "/content", {
@@ -99,7 +100,11 @@ export default {
         this.dataSource = originData.map((obj) => {
           const newObj = {};
           for (let [key, value] of Object.entries(obj)) {
-            newObj[key] = Number(value);
+            if (!isNaN(parseFloat(value))) {
+              newObj[key] = parseFloat(value);
+            } else {
+              newObj[key] = value;
+            }
           }
           return newObj;
         });
