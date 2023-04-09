@@ -153,6 +153,44 @@ const Distinct = {
         ],
     },
 }
+// 定义缺失值填充组件
+const MissingValues = {
+    data: {
+        label: "缺失值填充",
+        name: "缺失值填充",
+        status: "",
+    },
+    shape: "missing-values-node",
+    width: 140,
+    height: 36,
+    ports: {
+        groups: portGroups,
+        items: [
+            {
+                group: "in",
+                attrs: {
+                    text: {
+                        text: "输入",
+                        style: {
+                            visibility: "hidden",
+                        },
+                    },
+                },
+            },
+            {
+                group: "out",
+                attrs: {
+                    text: {
+                        text: "输出",
+                        style: {
+                            visibility: "hidden",
+                        },
+                    },
+                },
+            },
+        ],
+    },
+}
 // 定义数据划分组件
 const Split = {
     data: {
@@ -327,4 +365,4 @@ const EvalLinear = {
         ],
     },
 }
-export {ReadModel, ReadCsv, DataSet, Distinct, Split, Liner, Predict, EvalLinear};
+export {ReadModel, ReadCsv, DataSet, Distinct, MissingValues, Split, Liner, Predict, EvalLinear};

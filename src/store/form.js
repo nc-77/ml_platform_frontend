@@ -31,6 +31,12 @@ const readCsvFormStore = defineStore('readCsvForm', {
     },
     actions: defaultActions
 })
+const missingValuesFormStore = defineStore('missingValuesForm', {
+  state: () => {
+    return {formStates: new Map,}
+  },
+  actions: defaultActions
+})
 const splitFormStore = defineStore('splitForm', {
     state: () => {
         return {formStates: new Map,}
@@ -59,6 +65,7 @@ export {
     graphStore,
     readModelFormStore,
     readCsvFormStore,
+    missingValuesFormStore,
     splitFormStore,
     linerFormStore,
     predictFormStore,

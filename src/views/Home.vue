@@ -101,12 +101,16 @@ import ReadCsvNode from "@/components/dataSet/ReadCsvNode.vue";
 import ReadCsvForm from "../components/dataSet/ReadCsvForm.vue";
 import DistinctNode from "@/components/preprocessing/DistinctNode.vue";
 import DistinctForm from "@/components/preprocessing/DistinctForm.vue";
+import MissingValuesNode from "@/components/preprocessing/MissingValuesNode.vue";
+import MissingValuesForm from "@/components/preprocessing/MissingValuesForm.vue";
 import SplitNode from "@/components/preprocessing/SplitNode.vue";
 import SplitForm from "@/components/preprocessing/SplitForm.vue";
 import LinerNode from "@/components/machineLearning/LinearNode.vue";
 import LinerForm from "@/components/machineLearning/LinearForm.vue";
 import PredictNode from "@/components/machineLearning/PredictNode.vue";
 import PredictForm from "@/components/machineLearning/PredictForm.vue";
+import EvalLinearForm from "@/components/machineLearning/EvalLinearForm.vue";
+import EvalLinearNode from "@/components/machineLearning/EvalLinearNode.vue";
 
 import {
   FileDoneOutlined,
@@ -120,11 +124,10 @@ import {
   UserOutlined
 } from "@ant-design/icons-vue";
 import {graphStore} from "@/store/form";
-import EvalLinearForm from "@/components/machineLearning/EvalLinearForm.vue";
-import EvalLinearNode from "@/components/machineLearning/EvalLinearNode.vue";
 import {isEmpty} from "@/components/common";
 import {message} from "ant-design-vue";
 import {getStatus} from "@/components/result";
+
 
 const {Stencil} = Addon;
 const {Edge} = Shape;
@@ -151,6 +154,8 @@ export default {
     ReadCsvForm,
     DistinctNode,
     DistinctForm,
+    MissingValuesNode,
+    MissingValuesForm,
     SplitNode,
     SplitForm,
     LinerNode,
@@ -175,6 +180,7 @@ export default {
       ["读模型文件", "ReadModelForm"],
       ["预置数据集", "DataSetForm"],
       ["数据去重", "DistinctForm"],
+      ["缺失值填充", "MissingValuesForm"],
       ["数据划分", "SplitForm"],
       ["线性回归", "LinerForm"],
       ["预测", "PredictForm"],
@@ -535,6 +541,20 @@ export default {
           true
       );
       Graph.registerNode(
+          "missing-values-node",
+          {
+            inherit: "vue-shape",
+            component: {
+              template: `
+                <MissingValuesNode/>`,
+              components: {
+                MissingValuesNode,
+              },
+            },
+          },
+          true
+      );
+      Graph.registerNode(
           "split-node",
           {
             inherit: "vue-shape",
@@ -629,13 +649,14 @@ export default {
 
       // 创建数据预处理组件实例
       const distinct = this.graph.createNode(MetaData.Distinct);
+      const missingValues = this.graph.createNode(MetaData.MissingValues);
       const splitFile = this.graph.createNode(MetaData.Split);
       // 创建机器学习组件实例
       const linerReg = this.graph.createNode(MetaData.Liner);
       const prediction = this.graph.createNode(MetaData.Predict);
       const evalLinear = this.graph.createNode(MetaData.EvalLinear);
       // 挂载节点实例至组件库
-      stencil.load([distinct, splitFile], "group2");
+      stencil.load([distinct, missingValues, splitFile], "group2");
       stencil.load([linerReg], "group3");
       stencil.load([prediction, evalLinear], "group4");
       // 加载并挂载预置数据集
