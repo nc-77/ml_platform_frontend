@@ -278,11 +278,49 @@ const Liner = {
         ],
     },
 }
+// 定义线性回归组件
+const Knn = {
+    data: {
+        label: "K近邻",
+        name: "K近邻",
+        status: "",
+    },
+    shape: "knn-node",
+    width: 140,
+    height: 36,
+    ports: {
+        groups: portGroups,
+        items: [
+            {
+                group: "in",
+                attrs: {
+                    text: {
+                        text: "训练集输入",
+                        style: {
+                            visibility: "hidden",
+                        },
+                    },
+                },
+            },
+            {
+                group: "out",
+                attrs: {
+                    text: {
+                        text: "模型输出",
+                        style: {
+                            visibility: "hidden",
+                        },
+                    },
+                },
+            },
+        ],
+    },
+}
 // 定义预测组件
 const Predict = {
     data: {
         label: "预测",
-        name: "回归模型预测",
+        name: "预测",
         status: "",
     },
     shape: "predict-node",
@@ -365,4 +403,4 @@ const EvalLinear = {
         ],
     },
 }
-export {ReadModel, ReadCsv, DataSet, Distinct, MissingValues, Split, Liner, Predict, EvalLinear};
+export {ReadModel, ReadCsv, DataSet, Distinct, MissingValues, Split, Liner, Knn, Predict, EvalLinear};

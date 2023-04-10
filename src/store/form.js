@@ -49,6 +49,12 @@ const linerFormStore = defineStore('linerForm', {
     },
     actions: defaultActions
 })
+const knnFormStore = defineStore('knnForm', {
+    state: () => {
+        return {formStates: new Map,}
+    },
+    actions: defaultActions
+})
 const predictFormStore = defineStore('predictForm', {
     state: () => {
         return {formStates: new Map,}
@@ -68,6 +74,7 @@ export {
     missingValuesFormStore,
     splitFormStore,
     linerFormStore,
+    knnFormStore,
     predictFormStore,
     evalLinearFormStore
 }

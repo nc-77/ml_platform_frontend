@@ -107,6 +107,8 @@ import SplitNode from "@/components/preprocessing/SplitNode.vue";
 import SplitForm from "@/components/preprocessing/SplitForm.vue";
 import LinerNode from "@/components/machineLearning/LinearNode.vue";
 import LinerForm from "@/components/machineLearning/LinearForm.vue";
+import KnnNode from "@/components/machineLearning/KnnNode.vue";
+import KnnFrom from "@/components/machineLearning/KnnForm.vue";
 import PredictNode from "@/components/machineLearning/PredictNode.vue";
 import PredictForm from "@/components/machineLearning/PredictForm.vue";
 import EvalLinearForm from "@/components/machineLearning/EvalLinearForm.vue";
@@ -160,6 +162,8 @@ export default {
     SplitForm,
     LinerNode,
     LinerForm,
+    KnnNode,
+    KnnFrom,
     PredictNode,
     PredictForm,
     EvalLinearForm,
@@ -183,6 +187,7 @@ export default {
       ["缺失值填充", "MissingValuesForm"],
       ["数据划分", "SplitForm"],
       ["线性回归", "LinerForm"],
+      ["K近邻", "KnnFrom"],
       ["预测", "PredictForm"],
       ["回归模型评估", "EvalLinearForm"]
     ]);
@@ -583,6 +588,20 @@ export default {
           true
       );
       Graph.registerNode(
+          "knn-node",
+          {
+            inherit: "vue-shape",
+            component: {
+              template: `
+                <KnnNode/>`,
+              components: {
+                KnnNode,
+              },
+            },
+          },
+          true
+      );
+      Graph.registerNode(
           "predict-node",
           {
             inherit: "vue-shape",
@@ -653,11 +672,13 @@ export default {
       const splitFile = this.graph.createNode(MetaData.Split);
       // 创建机器学习组件实例
       const linerReg = this.graph.createNode(MetaData.Liner);
+      const knn = this.graph.createNode(MetaData.Knn);
+      // 创建预测及评估组件实例
       const prediction = this.graph.createNode(MetaData.Predict);
       const evalLinear = this.graph.createNode(MetaData.EvalLinear);
       // 挂载节点实例至组件库
       stencil.load([distinct, missingValues, splitFile], "group2");
-      stencil.load([linerReg], "group3");
+      stencil.load([linerReg,knn], "group3");
       stencil.load([prediction, evalLinear], "group4");
       // 加载并挂载预置数据集
       const response = await fetch("http://localhost:8081/files/dataSets", {

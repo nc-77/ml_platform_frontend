@@ -4,7 +4,7 @@
     <a-form-item label="组件名称">
       <a-input v-model:value="name"></a-input>
     </a-form-item>
-    <a-form-item label="选择标签列">
+    <a-form-item label="选择标签列（默认最后一列）">
       <a-select
           v-model:value="formState.classIndex"
           :options="fieldList"
@@ -65,13 +65,16 @@ export default {
     const graph = graphStore().graph;
     // 初始化输入数据集字段
     const inputFile = common.getInputFile(this.node, graph);
-    this.getFileFieldList(inputFile?.fileId).then(fieldList => {
-      fieldList?.forEach(field => {
-        this.fieldList.push({
-          "value": field,
+    if (!common.isEmpty(inputFile)){
+      this.getFileFieldList(inputFile?.fileId).then(fieldList => {
+        fieldList?.forEach(field => {
+          this.fieldList.push({
+            "value": field,
+          })
         })
-      })
-    });
+      });
+    }
+
   },
   methods: {
     saveForm() {

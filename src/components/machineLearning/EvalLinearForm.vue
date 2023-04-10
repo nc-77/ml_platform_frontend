@@ -21,7 +21,7 @@
 
 <script>
 import * as common from "@/components/common";
-import {graphStore, linerFormStore} from "@/store/form";
+import {evalLinearFormStore, graphStore} from "@/store/form";
 import {message} from "ant-design-vue";
 
 export default {
@@ -42,7 +42,7 @@ export default {
     // 初始化数据绑定
     common.mapper(this.node.data, this.$data);
     // 初始化表单数据
-    this.formStore = linerFormStore();
+    this.formStore = evalLinearFormStore();
     const formStateFormStore = this.formStore.getFormStateById(this.node.id);
     if (formStateFormStore) {
       this.formState = formStateFormStore;
@@ -53,6 +53,7 @@ export default {
     const graph = graphStore().graph;
     // 初始化输入数据集字段
     const inputFile = common.getInputFile(this.node, graph);
+    console.log(inputFile);
     this.getFileFieldList(inputFile?.fileId).then(fieldList => {
       fieldList?.forEach(field => {
         this.fieldList.push({
@@ -72,7 +73,7 @@ export default {
       message.success("保存成功");
     },
     getFileFieldList(fileId) {
-      return fetch("http://localhost:8081/files/" + fileId + "/fieldList", {
+      return fetch("http://localhost:8081/predictedFiles/" + fileId + "/fieldList", {
         method: "GET"
       }).then(res => res.json()).then(res => res.data);
     },
