@@ -74,7 +74,9 @@ export default {
     // 绑定run方法供父组件调用
     node.setData({
       run: this.submitForm,
-    })
+    });
+    this.getColumns();
+    this.getDataSources();
   },
   methods: {
     async submitForm() {
@@ -159,36 +161,40 @@ export default {
       this.columns = [];
       const node = this.getNode();
       const file = common.getFileByPort(node, 1);
-      common.getFileFieldList(file?.fileId).then(columnNames => {
-        columnNames?.forEach(name => {
-          this.columns.push({
-            title: name,
-            dataIndex: name,
-            key: name,
+      if (!common.isEmpty(file)) {
+        common.getFileFieldList(file?.fileId).then(columnNames => {
+          columnNames?.forEach(name => {
+            this.columns.push({
+              title: name,
+              dataIndex: name,
+              key: name,
+            })
           })
         })
-      })
+      }
     },
     getDataSources() {
       this.dataSource = [];
       const node = this.getNode();
       const outputFile = common.getFileByPort(node, 1);
-      fetch("http://localhost:8081/files/" + outputFile?.fileId + "/content", {
-        method: "GET"
-      }).then(res => res.json()).then(res => {
-        const originData = JSON.parse(res.data);
-        this.dataSource = originData.map((obj) => {
-          const newObj = {};
-          for (let [key, value] of Object.entries(obj)) {
-            if (!isNaN(parseFloat(value))) {
-              newObj[key] = parseFloat(value);
-            } else {
-              newObj[key] = value;
+      if (!common.isEmpty(outputFile)) {
+        fetch("http://localhost:8081/files/" + outputFile?.fileId + "/content", {
+          method: "GET"
+        }).then(res => res.json()).then(res => {
+          const originData = JSON.parse(res.data);
+          this.dataSource = originData.map((obj) => {
+            const newObj = {};
+            for (let [key, value] of Object.entries(obj)) {
+              if (!isNaN(parseFloat(value))) {
+                newObj[key] = parseFloat(value);
+              } else {
+                newObj[key] = value;
+              }
             }
-          }
-          return newObj;
+            return newObj;
+          });
         });
-      });
+      }
     },
     downloadFile(portIndex) {
       const node = this.getNode();

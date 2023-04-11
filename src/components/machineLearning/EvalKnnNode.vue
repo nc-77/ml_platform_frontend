@@ -10,50 +10,73 @@
       </div>
       <template #overlay>
         <a-menu>
-          <a-menu-item @click="runDistinct" class="my-menu-item">
+          <a-menu-item @click="runEvalKnn" class="my-menu-item">
             <template #icon>
               <right-circle-outlined/>
             </template>
             运行当前节点
           </a-menu-item>
-          <a-menu-item @click="tableVisible=true" class="my-menu-item">
+          <a-menu-item @click="tableVisible = true" class="my-menu-item">
             <template #icon>
               <monitor-outlined/>
             </template>
             查看数据结果
           </a-menu-item>
-          <a-menu-item @click="downloadFile(1)" class="my-menu-item">
-            <template #icon>
-              <cloud-download-outlined/>
-            </template>
-            数据结果下载
-          </a-menu-item>
         </a-menu>
       </template>
     </a-dropdown>
-
     <a-modal v-model:visible="tableVisible" title="数据结果" :footer="null" width="100%"
              wrap-class-name="full-modal">
-      <a-table :dataSource="dataSource" :columns="columns"/>
+      <a-table :dataSource="dataSource">
+        <a-table-column
+            v-for="column in columns"
+            :key="column.key"
+            :dataIndex="column.dataIndex"
+        >
+          <template #title>
+            <a-tooltip>
+              <template #title>{{ column.description }}</template>
+              {{ column.title }}
+            </a-tooltip>
+          </template>
+        </a-table-column>
+        <template #summary>
+          <a-table-summary-row>
+            <a-table-summary-cell>准确率</a-table-summary-cell>
+            <a-table-summary-cell>
+              <a-typography-text>
+                {{ pctCorrect }}
+              </a-typography-text>
+            </a-table-summary-cell>
+            <a-table-summary-cell></a-table-summary-cell>
+            <a-table-summary-cell>样本总数</a-table-summary-cell>
+            <a-table-summary-cell>
+              <a-typography-text>
+                {{ totalNumInstances }}
+              </a-typography-text>
+            </a-table-summary-cell>
+          </a-table-summary-row>
+        </template>
+      </a-table>
     </a-modal>
-
   </div>
 </template>
 
 <script>
 import * as common from "@/components/common";
-import {RightCircleOutlined, MonitorOutlined, CloudDownloadOutlined} from "@ant-design/icons-vue";
 import * as res from "@/components/result";
-import {message} from "ant-design-vue";
+import {MonitorOutlined, RightCircleOutlined} from "@ant-design/icons-vue";
 
 export default {
   inject: ["getGraph", "getNode"],
   data() {
     return {
       showContextMenu: false,
+      tableVisible: false,
       columns: [],
       dataSource: [],
-      tableVisible: false,
+      pctCorrect: "",
+      totalNumInstances: "",
       logo: "../src/assets/logo.png",
       label: "",
       name: "",
@@ -61,9 +84,8 @@ export default {
     };
   },
   components: {
-    RightCircleOutlined,
     MonitorOutlined,
-    CloudDownloadOutlined,
+    RightCircleOutlined,
   },
   mounted() {
     const node = this.getNode();
@@ -75,13 +97,41 @@ export default {
     node.setData({
       run: this.submitForm,
     })
-    this.getColumns();
-    this.getDataSources();
   },
   methods: {
+    getColumns() {
+      this.columns = [{
+        title: "类别",
+        dataIndex: "labelName",
+        key: "labelName",
+        description:"样本类别"
+      }, {
+        title: "精确率",
+        dataIndex: "precisionRate",
+        key: "precisionRate",
+        description:"预测为正例的样本中，实际为正例的样本占比",
+      }, {
+        title: "召回率",
+        dataIndex: "recall",
+        key: "recall",
+        description:"实际为正例的样本中，被预测为正例的样本占比"
+
+      }, {
+        title: "F1-score",
+        dataIndex: "fmeasure",
+        key: "fmeasure",
+        description:"精确率和召回率的调和平均数"
+      }, {
+        title: "类别样本总数",
+        dataIndex: "numInstances",
+        key: "numInstances",
+        description:"该类别的样本总数"
+      },]
+    },
+
     async submitForm() {
-      const graph = this.getGraph();
       const node = this.getNode();
+      const graph = this.getGraph();
       node.setData({
         status: "",
       });
@@ -90,7 +140,7 @@ export default {
         message: "",
         description: "",
       };
-      let nodeData = node.getData();
+      const nodeData = node.getData();
       // 检查上游节点是否完成
       if (!common.checkIncomingNodes(node, graph)) {
         result = {
@@ -110,16 +160,18 @@ export default {
         };
         return result;
       }
-      const inputFile = common.getInputFile(node, graph);
+
       node.setData({
         status: "running",
       });
+
       // 提交表单
+      const inputFile = common.getInputFile(node, graph);
       const formState = node.getData().formState;
       const postData = {
-        fileId: inputFile.fileId,
+        fileId: inputFile?.fileId,
       }
-      const response = await fetch("http://localhost:8081/files/removeDuplicates", {
+      const response = await fetch("http://localhost:8081/eval/knn", {
         method: "POST",
         body: JSON.stringify(postData),
         headers: {
@@ -137,84 +189,25 @@ export default {
         files.push({
           ...inputFile,
           portId: node.getPortAt(0).id,
-        }, {
-          fileId: resp.data.fileId,
-          fileName: resp.data.fileName,
-          portId: node.getPortAt(1).id,
         })
         node.setData({
           files: files,
+          evalResult: resp.data,
         });
         this.getColumns();
-        this.getDataSources();
+        this.dataSource = resp.data?.labelEvalResults;
+        this.pctCorrect = resp.data?.pctCorrect;
+        this.totalNumInstances = resp.data?.totalNumInstances;
       }
-      console.log(node.getData());
+      //console.log(node.getData());
       result = res.getResult(resp, nodeData);
       return result;
     },
-    async runDistinct() {
+
+    async runEvalKnn() {
       const result = await this.submitForm();
       common.openNotificationWithIcon(result);
-    },
-    getColumns() {
-      this.columns = [];
-      const node = this.getNode();
-      const file = common.getFileByPort(node, 1);
-      if (!common.isEmpty(file)) {
-        common.getFileFieldList(file?.fileId).then(columnNames => {
-          columnNames?.forEach(name => {
-            this.columns.push({
-              title: name,
-              dataIndex: name,
-              key: name,
-            })
-          })
-        })
-      }
-    },
-    getDataSources() {
-      this.dataSource = [];
-      const node = this.getNode();
-      const outputFile = common.getFileByPort(node, 1);
-      if (!common.isEmpty(outputFile)) {
-        fetch("http://localhost:8081/files/" + outputFile?.fileId + "/content", {
-          method: "GET"
-        }).then(res => res.json()).then(res => {
-          const originData = JSON.parse(res.data);
-          this.dataSource = originData.map((obj) => {
-            const newObj = {};
-            for (let [key, value] of Object.entries(obj)) {
-              if (!isNaN(parseFloat(value))) {
-                newObj[key] = parseFloat(value);
-              } else {
-                newObj[key] = value;
-              }
-            }
-            return newObj;
-          });
-        });
-      }
-    },
-    downloadFile(portIndex) {
-      const node = this.getNode();
-      const outputFile = common.getFileByPort(node, portIndex);
-
-      if (common.isEmpty(outputFile)) {
-        message.error("下载失败，节点暂无数据");
-        return;
-      }
-      fetch("http://localhost:8081/files/download/" + outputFile?.fileId)
-          .then(response => response.blob())
-          .then(blob => {
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.setAttribute('download', outputFile?.fileName);
-                document.body.appendChild(link);
-                link.click();
-              }
-          )
-    },
+    }
   },
   computed: {
     nodeClass: function () {

@@ -403,4 +403,42 @@ const EvalLinear = {
         ],
     },
 }
-export {ReadModel, ReadCsv, DataSet, Distinct, MissingValues, Split, Liner, Knn, Predict, EvalLinear};
+// 定义多分类模型评估组件
+const EvalKnn = {
+    data: {
+        label: "多分类模型评估",
+        name: "多分类模型评估",
+        status: "",
+    },
+    shape: "evalKnn-node",
+    width: 140,
+    height: 36,
+    ports: {
+        groups: portGroups,
+        items: [
+            {
+                group: "in",
+                attrs: {
+                    text: {
+                        text: "输入",
+                        style: {
+                            visibility: "hidden",
+                        },
+                    },
+                },
+            },
+            {
+                group: "out",
+                attrs: {
+                    text: {
+                        text: "输出",
+                        style: {
+                            visibility: "hidden",
+                        },
+                    },
+                },
+            },
+        ],
+    },
+}
+export {ReadModel, ReadCsv, DataSet, Distinct, MissingValues, Split, Liner, Knn, Predict, EvalLinear, EvalKnn};

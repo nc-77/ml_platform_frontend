@@ -38,7 +38,7 @@
   </a-modal>
 
   <a-modal v-model:visible="deleteVisible" title="删除工作流" ok-text="确定" cancel-text="取消" @ok="deleteWorkflow">
-    <p>即将删除工作流{{ this.workflow.workflowName }}</p>
+    <p>即将删除工作流 <strong>{{ this.workflow.workflowName }} </strong></p>
     <p>删除后无法恢复，确定删除吗？</p>
   </a-modal>
 
@@ -53,7 +53,7 @@ export default {
   name: "Workflow",
   components: {UpdateWorkflow},
   props: ["workflow"],
-  emits: ["on-update","on-delete"],
+  emits: ["on-update", "on-delete"],
   data() {
     return {
       showUpdateForm: false,
@@ -61,7 +61,7 @@ export default {
     }
   },
   methods: {
-    toHome(){
+    toHome() {
       this.$router.push("/home/" + this.workflow.id);
     },
     async updateWorkflow() {
@@ -91,7 +91,7 @@ export default {
       }
       this.showUpdateForm = false;
     },
-    async deleteWorkflow(){
+    async deleteWorkflow() {
       const res = await fetch("http://localhost:8081/workflow/" + this.workflow.id, {
         method: "DELETE",
       }).then(res => res.json());

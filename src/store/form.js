@@ -67,6 +67,12 @@ const evalLinearFormStore = defineStore('evalLinearForm', {
     },
     actions: defaultActions
 })
+const evalKnnFormStore = defineStore('evalKnnForm', {
+    state: () => {
+        return {formStates: new Map,}
+    },
+    actions: defaultActions
+})
 export {
     graphStore,
     readModelFormStore,
@@ -76,5 +82,6 @@ export {
     linerFormStore,
     knnFormStore,
     predictFormStore,
-    evalLinearFormStore
+    evalLinearFormStore,
+    evalKnnFormStore
 }

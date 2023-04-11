@@ -28,13 +28,13 @@
             </template>
             查看输出表2数据
           </a-menu-item>
-          <a-menu-item @click="downloadFile(1)" class="my-menu-item" >
+          <a-menu-item @click="downloadFile(1)" class="my-menu-item">
             <template #icon>
               <cloud-download-outlined/>
             </template>
             输出表1下载
           </a-menu-item>
-          <a-menu-item @click="downloadFile(2)" class="my-menu-item" >
+          <a-menu-item @click="downloadFile(2)" class="my-menu-item">
             <template #icon>
               <cloud-download-outlined/>
             </template>
@@ -60,7 +60,7 @@
 <script>
 import * as common from "@/components/common";
 import * as res from "@/components/result";
-import {MonitorOutlined, RightCircleOutlined,CloudDownloadOutlined} from "@ant-design/icons-vue";
+import {MonitorOutlined, RightCircleOutlined, CloudDownloadOutlined} from "@ant-design/icons-vue";
 import {nextTick} from "vue";
 import {Scatter} from "@antv/g2plot";
 import {message} from "ant-design-vue";
@@ -91,15 +91,17 @@ export default {
       this.columns = [];
       const node = this.getNode();
       const file = common.getFileByPort(node, 1);
-      common.getFileFieldList(file?.fileId).then(columnNames => {
-        columnNames?.forEach(name => {
-          this.columns.push({
-            title: name,
-            dataIndex: name,
-            key: name,
+      if (!common.isEmpty(file)) {
+        common.getFileFieldList(file?.fileId).then(columnNames => {
+          columnNames?.forEach(name => {
+            this.columns.push({
+              title: name,
+              dataIndex: name,
+              key: name,
+            })
           })
         })
-      })
+      }
     },
     getDataSources() {
       this.dataSource1 = [];
@@ -107,38 +109,42 @@ export default {
       const node = this.getNode();
       const outputFile1 = common.getFileByPort(node, 1);
       const outputFile2 = common.getFileByPort(node, 2);
-      fetch("http://localhost:8081/files/" + outputFile1?.fileId + "/content", {
-        method: "GET"
-      }).then(res => res.json()).then(res => {
-        const originData = JSON.parse(res.data);
-        this.dataSource1 = originData.map((obj) => {
-          const newObj = {};
-          for (let [key, value] of Object.entries(obj)) {
-            if (!isNaN(parseFloat(value))) {
-              newObj[key] = parseFloat(value);
-            } else {
-              newObj[key] = value;
+      if (!common.isEmpty(outputFile1)) {
+        fetch("http://localhost:8081/files/" + outputFile1?.fileId + "/content", {
+          method: "GET"
+        }).then(res => res.json()).then(res => {
+          const originData = JSON.parse(res.data);
+          this.dataSource1 = originData?.map((obj) => {
+            const newObj = {};
+            for (let [key, value] of Object.entries(obj)) {
+              if (!isNaN(parseFloat(value))) {
+                newObj[key] = parseFloat(value);
+              } else {
+                newObj[key] = value;
+              }
             }
-          }
-          return newObj;
+            return newObj;
+          });
         });
-      });
-      fetch("http://localhost:8081/files/" + outputFile2?.fileId + "/content", {
-        method: "GET"
-      }).then(res => res.json()).then(res => {
-        const originData = JSON.parse(res.data);
-        this.dataSource2 = originData.map((obj) => {
-          const newObj = {};
-          for (let [key, value] of Object.entries(obj)) {
-            if (!isNaN(parseFloat(value))) {
-              newObj[key] = parseFloat(value);
-            } else {
-              newObj[key] = value;
+      }
+      if (!common.isEmpty(outputFile2)) {
+        fetch("http://localhost:8081/files/" + outputFile2?.fileId + "/content", {
+          method: "GET"
+        }).then(res => res.json()).then(res => {
+          const originData = JSON.parse(res.data);
+          this.dataSource2 = originData?.map((obj) => {
+            const newObj = {};
+            for (let [key, value] of Object.entries(obj)) {
+              if (!isNaN(parseFloat(value))) {
+                newObj[key] = parseFloat(value);
+              } else {
+                newObj[key] = value;
+              }
             }
-          }
-          return newObj;
-        });
-      })
+            return newObj;
+          });
+        })
+      }
     },
     downloadFile(portIndex) {
       const node = this.getNode();
@@ -159,23 +165,6 @@ export default {
                 link.click();
               }
           )
-    },
-    async showPlot(column) {
-      this.plotVisible = true;
-      await nextTick();
-      const data = this.dataSource;
-      const scatterPlot = new Scatter('plotContainer', {
-        data,
-        xField: column.title,
-        yField: this.columns[this.columns.length - 1].title,
-        size: 5,
-        pointStyle: {
-          stroke: '#777777',
-          lineWidth: 1,
-          fill: '#5B8FF9',
-        },
-      });
-      scatterPlot.render();
     },
     async submitForm() {
       const graph = this.getGraph();
@@ -272,6 +261,8 @@ export default {
     node.setData({
       run: this.submitForm,
     })
+    this.getColumns();
+    this.getDataSources();
   },
   computed: {
     nodeClass: function () {

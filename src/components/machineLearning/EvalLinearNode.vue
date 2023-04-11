@@ -96,24 +96,6 @@ export default {
         key: "numInstances"
       },]
     },
-
-    async showPlot(column) {
-      this.plotVisible = true;
-      await nextTick();
-      const data = this.dataSource;
-      const scatterPlot = new Scatter('plotContainer', {
-        data,
-        xField: column.title,
-        yField: this.columns[this.columns.length - 1].title,
-        size: 5,
-        pointStyle: {
-          stroke: '#777777',
-          lineWidth: 1,
-          fill: '#5B8FF9',
-        },
-      });
-      scatterPlot.render();
-    },
     async submitForm() {
       const node = this.getNode();
       const graph = this.getGraph();

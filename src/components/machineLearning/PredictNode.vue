@@ -84,15 +84,17 @@ export default {
       this.columns = [];
       const node = this.getNode();
       const file = common.getFileByPort(node, 1);
-      await common.getFileFieldList(file?.fileId).then(columnNames => {
-        columnNames?.forEach(name => {
-          this.columns.push({
-            title: name,
-            dataIndex: name,
-            key: name,
+      if (!common.isEmpty(file)) {
+        await common.getFileFieldList(file?.fileId).then(columnNames => {
+          columnNames?.forEach(name => {
+            this.columns.push({
+              title: name,
+              dataIndex: name,
+              key: name,
+            })
           })
         })
-      })
+      }
       const formState = predictFormStore().getFormStateById(this.getNode().id);
       this.columns.push({
         title: formState.predictionResultName,
@@ -106,7 +108,9 @@ export default {
       const inputFile = common.getFileByPort(node, 1);
       const predictedFile = common.getFileByPort(node, 2);
       const formState = predictFormStore().getFormStateById(this.getNode().id);
-
+      if (common.isEmpty(inputFile) || common.isEmpty(predictedFile)) {
+        return;
+      }
       await fetch("http://localhost:8081/files/" + inputFile?.fileId + "/content", {
         method: "GET"
       }).then(res => res.json()).then(res => {

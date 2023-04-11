@@ -111,8 +111,10 @@ import KnnNode from "@/components/machineLearning/KnnNode.vue";
 import KnnFrom from "@/components/machineLearning/KnnForm.vue";
 import PredictNode from "@/components/machineLearning/PredictNode.vue";
 import PredictForm from "@/components/machineLearning/PredictForm.vue";
-import EvalLinearForm from "@/components/machineLearning/EvalLinearForm.vue";
 import EvalLinearNode from "@/components/machineLearning/EvalLinearNode.vue";
+import EvalLinearForm from "@/components/machineLearning/EvalLinearForm.vue";
+import EvalKnnNode from "@/components/machineLearning/EvalKnnNode.vue";
+import EvalKnnForm from "@/components/machineLearning/EvalKnnForm.vue";
 
 import {
   FileDoneOutlined,
@@ -147,7 +149,6 @@ export default {
   },
   props: ["workflowId"],
   components: {
-    EvalLinearNode,
     DataSet,
     DataSetForm,
     ReadModelNode,
@@ -166,7 +167,10 @@ export default {
     KnnFrom,
     PredictNode,
     PredictForm,
+    EvalLinearNode,
     EvalLinearForm,
+    EvalKnnNode,
+    EvalKnnForm,
 
     FileDoneOutlined,
     ZoomInOutlined,
@@ -189,7 +193,8 @@ export default {
       ["线性回归", "LinerForm"],
       ["K近邻", "KnnFrom"],
       ["预测", "PredictForm"],
-      ["回归模型评估", "EvalLinearForm"]
+      ["回归模型评估", "EvalLinearForm"],
+      ["多分类模型评估", "EvalKnnForm"]
     ]);
     await this.fetchData();
     this.initGraph();
@@ -629,6 +634,20 @@ export default {
           },
           true
       );
+      Graph.registerNode(
+          "evalKnn-node",
+          {
+            inherit: "vue-shape",
+            component: {
+              template: `
+                <EvalKnnNode/>`,
+              components: {
+                EvalKnnNode,
+              },
+            },
+          },
+          true
+      );
       // 注册自定义边
       Graph.registerEdge(
           "dag-edge",
@@ -676,10 +695,11 @@ export default {
       // 创建预测及评估组件实例
       const prediction = this.graph.createNode(MetaData.Predict);
       const evalLinear = this.graph.createNode(MetaData.EvalLinear);
+      const evalKnn = this.graph.createNode(MetaData.EvalKnn);
       // 挂载节点实例至组件库
       stencil.load([distinct, missingValues, splitFile], "group2");
-      stencil.load([linerReg,knn], "group3");
-      stencil.load([prediction, evalLinear], "group4");
+      stencil.load([linerReg, knn], "group3");
+      stencil.load([prediction, evalLinear, evalKnn], "group4");
       // 加载并挂载预置数据集
       const response = await fetch("http://localhost:8081/files/dataSets", {
         method: "GET",
