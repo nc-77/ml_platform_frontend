@@ -240,6 +240,44 @@ const Split = {
         ],
     },
 }
+// 定义属性过滤组件
+const RemoveAttribute = {
+    data: {
+        label: "属性过滤",
+        name: "属性过滤",
+        status: "",
+    },
+    shape: "remove-attribute-node",
+    width: 140,
+    height: 36,
+    ports: {
+        groups: portGroups,
+        items: [
+            {
+                group: "in",
+                attrs: {
+                    text: {
+                        text: "输入",
+                        style: {
+                            visibility: "hidden",
+                        },
+                    },
+                },
+            },
+            {
+                group: "out",
+                attrs: {
+                    text: {
+                        text: "输出表",
+                        style: {
+                            visibility: "hidden",
+                        },
+                    },
+                },
+            },
+        ],
+    },
+}
 // 定义线性回归组件
 const Liner = {
     data: {
@@ -278,14 +316,52 @@ const Liner = {
         ],
     },
 }
-// 定义线性回归组件
+// 定义knn组件
 const Knn = {
     data: {
-        label: "K近邻",
-        name: "K近邻",
+        label: "K近邻多分类",
+        name: "K近邻多分类",
         status: "",
     },
     shape: "knn-node",
+    width: 140,
+    height: 36,
+    ports: {
+        groups: portGroups,
+        items: [
+            {
+                group: "in",
+                attrs: {
+                    text: {
+                        text: "训练集输入",
+                        style: {
+                            visibility: "hidden",
+                        },
+                    },
+                },
+            },
+            {
+                group: "out",
+                attrs: {
+                    text: {
+                        text: "模型输出",
+                        style: {
+                            visibility: "hidden",
+                        },
+                    },
+                },
+            },
+        ],
+    },
+}
+// 定义逻辑回归分类组件
+const TwoClassify = {
+    data: {
+        label: "逻辑回归二分类",
+        name: "逻辑回归二分类",
+        status: "",
+    },
+    shape: "two-classify-node",
     width: 140,
     height: 36,
     ports: {
@@ -403,11 +479,11 @@ const EvalLinear = {
         ],
     },
 }
-// 定义多分类模型评估组件
+// 定义分类模型评估组件
 const EvalKnn = {
     data: {
-        label: "多分类模型评估",
-        name: "多分类模型评估",
+        label: "分类模型评估",
+        name: "分类模型评估",
         status: "",
     },
     shape: "evalKnn-node",
@@ -441,4 +517,18 @@ const EvalKnn = {
         ],
     },
 }
-export {ReadModel, ReadCsv, DataSet, Distinct, MissingValues, Split, Liner, Knn, Predict, EvalLinear, EvalKnn};
+export {
+    ReadModel,
+    ReadCsv,
+    DataSet,
+    Distinct,
+    MissingValues,
+    Split,
+    RemoveAttribute,
+    Liner,
+    Knn,
+    TwoClassify,
+    Predict,
+    EvalLinear,
+    EvalKnn
+};

@@ -10,73 +10,35 @@
       </div>
       <template #overlay>
         <a-menu>
-          <a-menu-item @click="runEvalKnn" class="my-menu-item">
+          <a-menu-item @click="runTwoClassify" class="my-menu-item">
             <template #icon>
               <right-circle-outlined/>
             </template>
             运行当前节点
           </a-menu-item>
-          <a-menu-item @click="tableVisible = true" class="my-menu-item">
+          <a-menu-item @click="downloadModel" class="my-menu-item" >
             <template #icon>
-              <monitor-outlined/>
+              <cloud-download-outlined/>
             </template>
-            查看数据结果
+            模型导出
           </a-menu-item>
         </a-menu>
       </template>
     </a-dropdown>
-    <a-modal v-model:visible="tableVisible" title="数据结果" :footer="null" width="100%"
-             wrap-class-name="full-modal">
-      <a-table :dataSource="dataSource">
-        <a-table-column
-            v-for="column in columns"
-            :key="column.key"
-            :dataIndex="column.dataIndex"
-        >
-          <template #title>
-            <a-tooltip>
-              <template #title>{{ column.description }}</template>
-              {{ column.title }}
-            </a-tooltip>
-          </template>
-        </a-table-column>
-        <template #summary>
-          <a-table-summary-row>
-            <a-table-summary-cell>准确率</a-table-summary-cell>
-            <a-table-summary-cell>
-              <a-typography-text>
-                {{ pctCorrect }}
-              </a-typography-text>
-            </a-table-summary-cell>
-            <a-table-summary-cell></a-table-summary-cell>
-            <a-table-summary-cell>样本总数</a-table-summary-cell>
-            <a-table-summary-cell>
-              <a-typography-text>
-                {{ totalNumInstances }}
-              </a-typography-text>
-            </a-table-summary-cell>
-          </a-table-summary-row>
-        </template>
-      </a-table>
-    </a-modal>
   </div>
 </template>
 
 <script>
 import * as common from "@/components/common";
 import * as res from "@/components/result";
-import {MonitorOutlined, RightCircleOutlined} from "@ant-design/icons-vue";
+import {RightCircleOutlined,CloudDownloadOutlined} from "@ant-design/icons-vue";
+import {message} from "ant-design-vue";
 
 export default {
   inject: ["getGraph", "getNode"],
   data() {
     return {
       showContextMenu: false,
-      tableVisible: false,
-      columns: [],
-      dataSource: [],
-      pctCorrect: "",
-      totalNumInstances: "",
       logo: "../src/assets/logo.png",
       label: "",
       name: "",
@@ -84,8 +46,8 @@ export default {
     };
   },
   components: {
-    MonitorOutlined,
     RightCircleOutlined,
+    CloudDownloadOutlined
   },
   mounted() {
     const node = this.getNode();
@@ -99,36 +61,6 @@ export default {
     })
   },
   methods: {
-    getColumns() {
-      this.columns = [{
-        title: "类别",
-        dataIndex: "labelName",
-        key: "labelName",
-        description:"样本类别"
-      }, {
-        title: "精确率",
-        dataIndex: "precisionRate",
-        key: "precisionRate",
-        description:"预测为正例的样本中，实际为正例的样本占比",
-      }, {
-        title: "召回率",
-        dataIndex: "recall",
-        key: "recall",
-        description:"实际为正例的样本中，被预测为正例的样本占比"
-
-      }, {
-        title: "F1-score",
-        dataIndex: "fmeasure",
-        key: "fmeasure",
-        description:"精确率和召回率的调和平均数"
-      }, {
-        title: "类别样本总数",
-        dataIndex: "numInstances",
-        key: "numInstances",
-        description:"该类别的样本总数"
-      },]
-    },
-
     async submitForm() {
       const node = this.getNode();
       const graph = this.getGraph();
@@ -160,18 +92,19 @@ export default {
         };
         return result;
       }
-
+      const inputFile = common.getInputFile(node, graph);
       node.setData({
         status: "running",
       });
 
       // 提交表单
-      const inputFile = common.getInputFile(node, graph);
       const formState = node.getData().formState;
       const postData = {
         fileId: inputFile?.fileId,
+        classIndex: formState.classIndex,
+        k: formState.kNumber,
       }
-      const response = await fetch("http://localhost:8081/eval/knn", {
+      const response = await fetch("http://localhost:8081/train/logistic", {
         method: "POST",
         body: JSON.stringify(postData),
         headers: {
@@ -188,23 +121,42 @@ export default {
         const files = [];
         files.push({
           ...inputFile,
-          portId: node.getPortAt(0).id,
+          portId: node.getPortAt(0).id
+        }, {
+          fileId: resp.data.modelId,
+          fileName: resp.data.modelName,
+          portId: node.getPortAt(1).id,
         })
         node.setData({
           files: files,
-          evalResult: resp.data,
         });
-        this.getColumns();
-        this.dataSource = resp.data?.labelEvalResults;
-        this.pctCorrect = resp.data?.pctCorrect;
-        this.totalNumInstances = resp.data?.totalNumInstances;
       }
-      //console.log(node.getData());
+      console.log(node.getData());
       result = res.getResult(resp, nodeData);
       return result;
     },
-
-    async runEvalKnn() {
+    downloadModel() {
+      const node = this.getNode();
+      const model = common.getFileByPort(node, 1);
+      if(common.isEmpty(model)) {
+        message.error("下载失败，节点暂无数据");
+        return;
+      }
+      fetch("http://localhost:8081/models/download/" + model?.fileId)
+          .then(response => response.blob())
+          .then(blob => {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                const modelName = model?.fileName.split(".")[0];
+                const newModelName = modelName + "-" + model?.fileId+ ".model";
+                link.setAttribute('download', newModelName);
+                document.body.appendChild(link);
+                link.click();
+              }
+          )
+    },
+    async runTwoClassify() {
       const result = await this.submitForm();
       common.openNotificationWithIcon(result);
     }

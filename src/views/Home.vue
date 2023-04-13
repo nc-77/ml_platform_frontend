@@ -105,16 +105,20 @@ import MissingValuesNode from "@/components/preprocessing/MissingValuesNode.vue"
 import MissingValuesForm from "@/components/preprocessing/MissingValuesForm.vue";
 import SplitNode from "@/components/preprocessing/SplitNode.vue";
 import SplitForm from "@/components/preprocessing/SplitForm.vue";
+import RemoveAttributeNode  from "@/components/preprocessing/RemoveAttributeNode.vue";
+import RemoveAttributeForm from "@/components/preprocessing/RemoveAttributeForm.vue";
 import LinerNode from "@/components/machineLearning/LinearNode.vue";
 import LinerForm from "@/components/machineLearning/LinearForm.vue";
 import KnnNode from "@/components/machineLearning/KnnNode.vue";
 import KnnFrom from "@/components/machineLearning/KnnForm.vue";
-import PredictNode from "@/components/machineLearning/PredictNode.vue";
-import PredictForm from "@/components/machineLearning/PredictForm.vue";
-import EvalLinearNode from "@/components/machineLearning/EvalLinearNode.vue";
-import EvalLinearForm from "@/components/machineLearning/EvalLinearForm.vue";
-import EvalKnnNode from "@/components/machineLearning/EvalKnnNode.vue";
-import EvalKnnForm from "@/components/machineLearning/EvalKnnForm.vue";
+import TwoClassifyNode from "@/components/machineLearning/TwoClassifyNode.vue";
+import TwoClassifyForm from "@/components/machineLearning/TwoClassifyForm.vue";
+import PredictNode from "@/components/eval/PredictNode.vue";
+import PredictForm from "@/components/eval/PredictForm.vue";
+import EvalLinearNode from "@/components/eval/EvalLinearNode.vue";
+import EvalLinearForm from "@/components/eval/EvalLinearForm.vue";
+import EvalKnnNode from "@/components/eval/EvalKnnNode.vue";
+import EvalKnnForm from "@/components/eval/EvalKnnForm.vue";
 
 import {
   FileDoneOutlined,
@@ -161,10 +165,14 @@ export default {
     MissingValuesForm,
     SplitNode,
     SplitForm,
+    RemoveAttributeNode,
+    RemoveAttributeForm,
     LinerNode,
     LinerForm,
     KnnNode,
     KnnFrom,
+    TwoClassifyNode,
+    TwoClassifyForm,
     PredictNode,
     PredictForm,
     EvalLinearNode,
@@ -190,11 +198,13 @@ export default {
       ["数据去重", "DistinctForm"],
       ["缺失值填充", "MissingValuesForm"],
       ["数据划分", "SplitForm"],
+      ["属性过滤","RemoveAttributeForm"],
       ["线性回归", "LinerForm"],
-      ["K近邻", "KnnFrom"],
+      ["K近邻多分类", "KnnFrom"],
+      ["逻辑回归二分类", "TwoClassifyForm"],
       ["预测", "PredictForm"],
       ["回归模型评估", "EvalLinearForm"],
-      ["多分类模型评估", "EvalKnnForm"]
+      ["分类模型评估", "EvalKnnForm"]
     ]);
     await this.fetchData();
     this.initGraph();
@@ -579,6 +589,20 @@ export default {
           true
       );
       Graph.registerNode(
+          "remove-attribute-node",
+          {
+            inherit: "vue-shape",
+            component: {
+              template: `
+                <RemoveAttributeNode/>`,
+              components: {
+                RemoveAttributeNode,
+              },
+            },
+          },
+          true
+      );
+      Graph.registerNode(
           "liner-node",
           {
             inherit: "vue-shape",
@@ -601,6 +625,20 @@ export default {
                 <KnnNode/>`,
               components: {
                 KnnNode,
+              },
+            },
+          },
+          true
+      );
+      Graph.registerNode(
+          "two-classify-node",
+          {
+            inherit: "vue-shape",
+            component: {
+              template: `
+                <TwoClassifyNode/>`,
+              components: {
+                TwoClassifyNode,
               },
             },
           },
@@ -689,16 +727,18 @@ export default {
       const distinct = this.graph.createNode(MetaData.Distinct);
       const missingValues = this.graph.createNode(MetaData.MissingValues);
       const splitFile = this.graph.createNode(MetaData.Split);
+      const removeAttribute = this.graph.createNode(MetaData.RemoveAttribute);
       // 创建机器学习组件实例
       const linerReg = this.graph.createNode(MetaData.Liner);
       const knn = this.graph.createNode(MetaData.Knn);
+      const twoClassify = this.graph.createNode(MetaData.TwoClassify);
       // 创建预测及评估组件实例
       const prediction = this.graph.createNode(MetaData.Predict);
       const evalLinear = this.graph.createNode(MetaData.EvalLinear);
       const evalKnn = this.graph.createNode(MetaData.EvalKnn);
       // 挂载节点实例至组件库
-      stencil.load([distinct, missingValues, splitFile], "group2");
-      stencil.load([linerReg, knn], "group3");
+      stencil.load([distinct, missingValues, splitFile,removeAttribute], "group2");
+      stencil.load([linerReg, knn,twoClassify], "group3");
       stencil.load([prediction, evalLinear, evalKnn], "group4");
       // 加载并挂载预置数据集
       const response = await fetch("http://localhost:8081/files/dataSets", {

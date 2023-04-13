@@ -43,6 +43,12 @@ const splitFormStore = defineStore('splitForm', {
     },
     actions: defaultActions
 })
+const removeAttributeFormStore = defineStore('removeAttributeForm', {
+    state: () => {
+        return {formStates: new Map,}
+    },
+    actions: defaultActions
+})
 const linerFormStore = defineStore('linerForm', {
     state: () => {
         return {formStates: new Map,}
@@ -50,6 +56,12 @@ const linerFormStore = defineStore('linerForm', {
     actions: defaultActions
 })
 const knnFormStore = defineStore('knnForm', {
+    state: () => {
+        return {formStates: new Map,}
+    },
+    actions: defaultActions
+})
+const twoClassifyFormStore = defineStore('twoClassifyForm', {
     state: () => {
         return {formStates: new Map,}
     },
@@ -79,8 +91,10 @@ export {
     readCsvFormStore,
     missingValuesFormStore,
     splitFormStore,
+    removeAttributeFormStore,
     linerFormStore,
     knnFormStore,
+    twoClassifyFormStore,
     predictFormStore,
     evalLinearFormStore,
     evalKnnFormStore

@@ -33,8 +33,9 @@
     <a-button danger @click="deleteVisible = true">删除</a-button>
   </a-space>
 
-  <a-modal v-model:visible="showUpdateForm" title="修改工作流" ok-text="确定" cancel-text="取消" @ok="updateWorkflow">
-    <update-workflow ref="updateForm" :form-state="workflow"></update-workflow>
+  <a-modal v-model:visible="showUpdateForm" title="修改工作流" ok-text="确定" cancel-text="取消" @ok="updateWorkflow"
+           :destroyOnClose="true">
+    <update-workflow ref="updateForm" :form-state="this.workflow"></update-workflow>
   </a-modal>
 
   <a-modal v-model:visible="deleteVisible" title="删除工作流" ok-text="确定" cancel-text="取消" @ok="deleteWorkflow">
@@ -103,7 +104,7 @@ export default {
         message.error("工作流删除失败");
       }
       this.deleteVisible = false;
-    }
+    },
   }
 }
 </script>
