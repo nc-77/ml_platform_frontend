@@ -842,7 +842,7 @@ export default {
 }
 
 #stencil {
-  width: 164px;
+  width: 180px;
   height: 100%;
   border-top: 1px solid #d3dae5;
 }

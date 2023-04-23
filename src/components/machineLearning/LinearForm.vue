@@ -10,18 +10,21 @@
           :options="fieldList"
       ></a-select>
     </a-form-item>
-    <a-form-item label="最大迭代轮数">
-      <a-input v-model:value="formState.maxIterations"></a-input>
-    </a-form-item>
-    <a-form-item label="最小似然误差">
-      <a-input v-model:value="formState.minDiff"></a-input>
-    </a-form-item>
-    <a-form-item label="正则化类型">
+<!--    <a-form-item label="最大迭代轮数">-->
+<!--      <a-input v-model:value="formState.maxIterations"></a-input>-->
+<!--    </a-form-item>-->
+<!--    <a-form-item label="最小似然误差">-->
+<!--      <a-input v-model:value="formState.minDiff"></a-input>-->
+<!--    </a-form-item>-->
+    <a-form-item label="特征选择">
       <a-select
-          v-model:value="formState.linearMethods"
-          :options="this.getLinearMethods()"
+          v-model:value="formState.attributeSelectionMethod"
+          :options="this.getAttributeSelectionMethods()"
       ></a-select>
     </a-form-item>
+        <a-form-item label="Ridge设置（默认为1.0e-8）">
+          <a-input v-model:value="formState.ridge"></a-input>
+        </a-form-item>
     <a-form-item>
       <a-button type="primary" @click="saveForm">保存</a-button>
     </a-form-item>
@@ -43,7 +46,8 @@ export default {
         classIndex: "",
         maxIterations: "100",
         minDiff: "0.001",
-        linearMethods: [{"value": "None"}],
+        ridge:1.0e-8,
+        attributeSelectionMethod: 0,
       },
       fieldList: [],
     };
@@ -91,12 +95,14 @@ export default {
         method: "GET"
       }).then(res => res.json()).then(res => res.data);
     },
-    getLinearMethods() {
-      const methods = ["None", "L1", "L2"];
+    getAttributeSelectionMethods() {
+      const methods = ["M5", "None", "Greedy"];
+      let methodValue = 0;
       let linearMethods = [];
       methods.forEach(method => {
         linearMethods.push({
-          "value": method,
+          "value": methodValue++,
+          "label": method
         })
       })
       return linearMethods;

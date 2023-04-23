@@ -102,6 +102,8 @@ export default {
       const postData = {
         fileId: inputFile?.fileId,
         classIndex: formState.classIndex,
+        attributeSelectionMethod: formState.attributeSelectionMethod,
+        ridge: formState.ridge,
       }
       const response = await fetch("http://localhost:8081/train/linearRegression", {
         method: "POST",
